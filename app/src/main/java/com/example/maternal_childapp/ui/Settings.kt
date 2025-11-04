@@ -32,70 +32,48 @@ import com.example.maternal_childapp.R
 
 private val IconSize = 24.dp
 private val IconSpacing = 12.dp
+
 @Composable
-fun MorePage(){
+fun Settings(){
     Box(
         Modifier.fillMaxSize()){
-        Image(
-            painter = painterResource(id = R.drawable.background1),
-            contentDescription = null,
-            modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Crop
-        )
-    }
+            Image(
+                painter = painterResource(id = R.drawable.background1),
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
+        }
         Column(
             modifier = Modifier
                 .fillMaxSize(),
-                //.background(brush =  backgroundBrush),
                 //.padding(innerPadding),
                 horizontalAlignment = Alignment.CenterHorizontally,
-    )
-        {
-            Image(
-                painter = painterResource(id = R.drawable.breastfeeding), // replace with actual profile image later
-                contentDescription = "Profile Photo",
-                modifier = Modifier
-                    .size(120.dp)
-                    .clip(CircleShape),
-                contentScale = ContentScale.Crop
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
+        ){
             Text(
-                text = "Faith Wangeci",
+                text = "Settings",
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary
             )
-
             Spacer(modifier = Modifier.height(24.dp))
 
-            InfoCard("Personal Information",
-                    "Name: Faith Wangeci\nDate of Birth: 1990-05-15",
-                    icon = Icons.Default.Person )
-            InfoCard("Health Information",
-                "Child's Age: 1 year",
-                icon = Icons.Default.Favorite)
-            InfoCard("Medical History",
-                "Blood Type O+",
-                icon = Icons.Default.Check)
-            InfoCard("Preferences and Settings",
-                "Language: English",
-                icon = Icons.Default.Settings)
-            InfoCard("Support and Resources",
-                "FAQ'S",
-                icon = Icons.Default.Info)
+            SettingsInfoCard(
+                title = "",
+                text = "",
+                icon = Icons.Default.Person
+            )
 
         }
     }
 
+
 @Composable
-fun InfoCard(
+fun SettingsInfoCard(
     title: String,
     text: String,
     icon: ImageVector = Icons.Default.Info
-) {
+){
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -109,26 +87,26 @@ fun InfoCard(
                 .fillMaxWidth()
                 .padding(20.dp),
 
-        ){
-        Row(
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(24.dp)
-            )
+            ){
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(24.dp)
+                )
 
-            Spacer(modifier = Modifier.width(12.dp))
+                Spacer(modifier = Modifier.width(12.dp))
 
-            Text(
-                text = title,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Medium,
-                color = Color.DarkGray
-            )
-        }
+                Text(
+                    text = title,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = Color.DarkGray
+                )
+            }
             Row(
                 modifier = Modifier.fillMaxWidth()
             )
@@ -145,11 +123,10 @@ fun InfoCard(
             }
         }
     }
- }
-
+}
 
 @Preview(showBackground = true)
 @Composable
-fun MorePagePreview() {
-    MorePage()
+fun SettingsPreview() {
+    Settings()
 }
