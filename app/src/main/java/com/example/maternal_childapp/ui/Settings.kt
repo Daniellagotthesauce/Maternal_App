@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.example.maternal_childapp.R
+import kotlinx.coroutines.channels.ticker
 
 
 private val IconSize = 24.dp
@@ -59,10 +60,26 @@ fun Settings(){
             Spacer(modifier = Modifier.height(24.dp))
 
             SettingsInfoCard(
-                title = "",
-                text = "",
+                title = "Account Details",
+                text = "Manage your personal information",
                 icon = Icons.Default.Person
             )
+            SettingsInfoCard(
+                title = "Notifications Settings",
+                text = "Customise your notifications preference",
+                icon = Icons.Default.Person
+            )
+            SettingsInfoCard(
+                title = "Account Details",
+                text = "Manage your personal information",
+                icon = Icons.Default.Person
+            )
+            SettingsInfoCard(
+                title = "Help & Support",
+                text = "Manage your personal information",
+                icon = Icons.Default.Person
+            )
+
 
         }
     }
