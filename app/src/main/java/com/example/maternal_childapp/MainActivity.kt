@@ -13,6 +13,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.maternal_childapp.ui.AddChild
 import com.example.maternal_childapp.ui.ChangeProfile
+import com.example.maternal_childapp.ui.HomePage
 import com.example.maternal_childapp.ui.LandingScreen
 import com.example.maternal_childapp.ui.LoginScreen
 import com.example.maternal_childapp.ui.Settings
@@ -40,7 +41,7 @@ class MainActivity : ComponentActivity() {
                             )
                         }
                         composable("login") { AddChild() }
-                        composable("signup") { MorePage() }
+                        composable("signup") { ChangeProfile() }
 
                     }
                 }

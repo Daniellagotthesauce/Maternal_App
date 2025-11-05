@@ -51,12 +51,19 @@ fun Settings(){
         //.padding(innerPadding),
         horizontalAlignment = Alignment.CenterHorizontally,
     ){
-        Text(
+        Surface (
+            color = Color.White,
+            modifier = Modifier.fillMaxWidth().height(60.dp),
+        ){
+            Text(
             text = "Settings",
             fontSize = 22.sp,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary
-        )
+            color = MaterialTheme.colorScheme.primary,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(15.dp)
+        ) }
+
         Spacer(modifier = Modifier.height(12.dp))
 
         Text(

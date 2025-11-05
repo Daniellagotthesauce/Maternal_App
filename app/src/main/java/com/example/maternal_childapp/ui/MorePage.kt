@@ -15,6 +15,7 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
+import androidx.compose.material3.Surface
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -28,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.style.TextAlign
 import com.example.maternal_childapp.R
 
 
@@ -50,10 +52,23 @@ fun MorePage(){
                 //.background(brush =  backgroundBrush),
                 //.padding(innerPadding),
                 horizontalAlignment = Alignment.CenterHorizontally,
-    )
-        {       Spacer(modifier = Modifier.height(6.dp))
+             ){
+            Surface(
+                color = Color.White,
+                modifier = Modifier.fillMaxWidth().height(60.dp),
+            )
+            {
+                Text(
+                    text = "Edit Profile",
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(15.dp)
+                )
+            }
+            Spacer(modifier = Modifier.height(12.dp))
             Image(
-
                 painter = painterResource(id = R.drawable.danie), // replace with actual profile image later
                 contentDescription = "Profile Photo",
                 modifier = Modifier

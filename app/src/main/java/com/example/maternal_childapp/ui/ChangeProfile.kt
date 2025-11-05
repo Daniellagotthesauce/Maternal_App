@@ -22,6 +22,7 @@ import com.example.maternal_childapp.R
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.style.TextAlign
 
@@ -43,14 +44,17 @@ fun ChangeProfile() {
             horizontalAlignment = Alignment.CenterHorizontally
         )
         {
-            Spacer(modifier = Modifier.height(30.dp))
-
-            Text(
+            Surface(
+                color = Color.White,
+                modifier = Modifier.fillMaxWidth().height(60.dp),
+            ){ Text(
                 text = "Edit Profile",
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary
-            )
+                color = MaterialTheme.colorScheme.primary,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(15.dp)
+            )}
             Spacer(modifier = Modifier.height(12.dp))
 
             Image(

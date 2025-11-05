@@ -22,6 +22,7 @@ import com.example.maternal_childapp.R
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.style.TextAlign
 
@@ -41,21 +42,28 @@ fun AddChild() {
             modifier = Modifier
                 .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
-        )
-        {
-            Spacer(modifier = Modifier.height(30.dp))
+        ) {
+            Surface(
+                color = Color.White,
+                modifier = Modifier.fillMaxWidth().height(60.dp),
+            ) {
 
-            Text(
-                text = "Add Child",
-                fontSize = 22.sp,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary
-            )
-            Spacer(modifier = Modifier.height(30.dp))
-            ChildForm()
+                Text(
+                    text = "Add Child",
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(15.dp)
+                )
+
+            }
+                    Spacer(modifier = Modifier.height(30.dp))
+                    ChildForm()
+                }
+            }
         }
-    }
-}
+
 
 @Composable
 fun ChildForm(){
