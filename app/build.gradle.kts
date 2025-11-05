@@ -38,9 +38,6 @@ android {
         viewBinding = true
         compose = true
     }
-    composeOptions{
-        kotlinCompilerExtensionVersion = "1.5.3"
-    }
 }
 
 dependencies {
@@ -61,6 +58,7 @@ dependencies {
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
+    implementation("androidx.navigation:navigation-compose:2.7.7")
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 
