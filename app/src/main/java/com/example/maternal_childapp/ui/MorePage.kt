@@ -100,8 +100,8 @@ fun InfoCard(
 ) {
     Card(
         modifier = Modifier
-            .fillMaxWidth(),
-            //.padding(vertical = 6.dp),
+            .fillMaxWidth()
+            .padding(vertical = 2.dp),
         shape = RoundedCornerShape(0.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xFFFFFFFF)),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)

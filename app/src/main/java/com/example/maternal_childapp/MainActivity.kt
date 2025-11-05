@@ -11,6 +11,8 @@ import androidx.compose.material3.Surface
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.maternal_childapp.ui.AddChild
+import com.example.maternal_childapp.ui.ChangeProfile
 import com.example.maternal_childapp.ui.LandingScreen
 import com.example.maternal_childapp.ui.LoginScreen
 import com.example.maternal_childapp.ui.Settings
@@ -21,6 +23,8 @@ class MainActivity : ComponentActivity() {
         setContent {
             MorePage()
             Settings()
+            ChangeProfile()
+            AddChild()
             MaterialTheme {
                 Surface {
                     val nav = rememberNavController()
@@ -35,7 +39,7 @@ class MainActivity : ComponentActivity() {
                                 onSignUp = { nav.navigate("signup") }
                             )
                         }
-                        composable("login") { Settings() }
+                        composable("login") { AddChild() }
                         composable("signup") { MorePage() }
 
                     }
