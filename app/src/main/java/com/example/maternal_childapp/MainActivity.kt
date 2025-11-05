@@ -40,7 +40,8 @@ class MainActivity : ComponentActivity() {
                                 onSignUp = { nav.navigate("signup") }
                             )
                         }
-                        composable("login") { AddChild() }
+                        //composable("login") { AddChild() }
+                        composable("login") {LoginScreen() }
                         composable("signup") { ChangeProfile() }
 
                     }
