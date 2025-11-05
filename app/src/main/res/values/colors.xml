@@ -4,7 +4,7 @@
     <color name="white">#FFFFFFFF</color>
     <color name="baby_pink">#FFC1C2</color>
     <color name="baby_blue">#A1C4FD</color>
-    <string name="strong_pink">#FF2D86</string>
-    <string name="soft_blue">#5DADE2</string>
+    <color name="strong_pink">#FF2D86</color>
+    <color name="soft_blue">#5DADE2</color>
 
 </resources>
