@@ -13,12 +13,14 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.maternal_childapp.ui.LandingScreen
 import com.example.maternal_childapp.ui.LoginScreen
+import com.example.maternal_childapp.ui.Settings
 import com.example.maternal_childapp.ui.SignUpScreen
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             MorePage()
+            Settings()
             MaterialTheme {
                 Surface {
                     val nav = rememberNavController()
@@ -33,8 +35,8 @@ class MainActivity : ComponentActivity() {
                                 onSignUp = { nav.navigate("signup") }
                             )
                         }
-                        composable("login") { LoginScreen() }
-                        composable("signup") { SignUpScreen() }
+                        composable("login") { Settings() }
+                        composable("signup") { MorePage() }
 
                     }
                 }

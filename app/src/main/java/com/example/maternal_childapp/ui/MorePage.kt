@@ -8,6 +8,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Icon
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.border
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Face
 import androidx.compose.material.icons.filled.Favorite
@@ -50,9 +51,10 @@ fun MorePage(){
                 //.padding(innerPadding),
                 horizontalAlignment = Alignment.CenterHorizontally,
     )
-        {
+        {       Spacer(modifier = Modifier.height(6.dp))
             Image(
-                painter = painterResource(id = R.drawable.breastfeeding), // replace with actual profile image later
+
+                painter = painterResource(id = R.drawable.danie), // replace with actual profile image later
                 contentDescription = "Profile Photo",
                 modifier = Modifier
                     .size(120.dp)
@@ -69,7 +71,7 @@ fun MorePage(){
                 color = MaterialTheme.colorScheme.primary
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             InfoCard("Personal Information",
                     "Name: Faith Wangeci\nDate of Birth: 1990-05-15",
@@ -98,9 +100,9 @@ fun InfoCard(
 ) {
     Card(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 6.dp),
-        shape = RoundedCornerShape(12.dp),
+            .fillMaxWidth(),
+            //.padding(vertical = 6.dp),
+        shape = RoundedCornerShape(0.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xFFFFFFFF)),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
@@ -114,11 +116,12 @@ fun InfoCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(24.dp)
-            )
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(24.dp)
+                )
+
 
             Spacer(modifier = Modifier.width(12.dp))
 
