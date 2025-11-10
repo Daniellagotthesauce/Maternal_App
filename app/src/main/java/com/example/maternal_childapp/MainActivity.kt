@@ -1,5 +1,7 @@
 package com.example.maternal_childapp
 
+import com.google.firebase.FirebaseApp
+import android.util.Log
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -21,6 +23,8 @@ import com.example.maternal_childapp.ui.SignUpScreen
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        FirebaseApp.initializeApp(this)
+        Log.d("FirebaseStatus", "✅ Firebase initialized successfully!")
         setContent {
             MorePage()
             Settings()
