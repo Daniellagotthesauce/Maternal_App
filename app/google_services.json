@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "683810175631",
+    "project_id": "maternalchildapp",
+    "storage_bucket": "maternalchildapp.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:683810175631:android:12862ac0efaec96251cefa",
+        "android_client_info": {
+          "package_name": "com.example.maternal_childapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCYNLjq22sssuwbhWKBlk9Ca2yoMQAURQo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

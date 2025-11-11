@@ -18,6 +18,7 @@ import com.example.maternal_childapp.ui.ChangeProfile
 import com.example.maternal_childapp.ui.HomePage
 import com.example.maternal_childapp.ui.LandingScreen
 import com.example.maternal_childapp.ui.LoginScreen
+import com.example.maternal_childapp.ui.OnboardingScreen
 import com.example.maternal_childapp.ui.Settings
 import com.example.maternal_childapp.ui.SignUpScreen
 class MainActivity : ComponentActivity() {
@@ -44,10 +45,19 @@ class MainActivity : ComponentActivity() {
                                 onSignUp = { nav.navigate("signup") }
                             )
                         }
-                        //composable("login") { AddChild() }
+
+                        composable("onboarding") {
+                            OnboardingScreen(
+                                userName = "Faith",
+                                onContinueClick = { }
+                            )
+                        }
+
                         composable("login") {LoginScreen() }
-                        //composable("signup") { ChangeProfile() }
-                        composable("signup") { SignUpScreen() }
+                        composable("signup") {
+                            SignUpScreen(
+                                onRegisterClick = { nav.navigate("onboarding") }
+                            ) }
 
                     }
                 }

@@ -331,7 +331,8 @@ fun SignUpScreen(
 
             // Register button
             Button(
-                onClick = { onRegisterClick?.invoke() },
+                onClick = {
+                    onRegisterClick?.invoke() },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(48.dp),
