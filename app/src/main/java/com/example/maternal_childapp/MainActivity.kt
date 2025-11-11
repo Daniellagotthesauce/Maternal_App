@@ -46,7 +46,8 @@ class MainActivity : ComponentActivity() {
                         }
                         //composable("login") { AddChild() }
                         composable("login") {LoginScreen() }
-                        composable("signup") { ChangeProfile() }
+                        //composable("signup") { ChangeProfile() }
+                        composable("signup") { SignUpScreen() }
 
                     }
                 }
