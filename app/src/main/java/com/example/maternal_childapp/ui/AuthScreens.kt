@@ -1,9 +1,9 @@
 package com.example.maternal_childapp.ui
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -22,6 +23,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.maternal_childapp.R
+import com.google.firebase.Firebase
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.auth
+import com.google.firebase.firestore.FirebaseFirestore
 
 //Login screen
 @Composable
@@ -40,6 +45,15 @@ fun LoginScreen(
         colors = listOf(Color(0x22FF9BB3), Color.Transparent)
     )
 
+    val context = LocalContext.current
+    val auth = Firebase.auth
+    val db = FirebaseFirestore.getInstance()
+
+    // Form state
+    var email by rememberSaveable { mutableStateOf("") }
+    var password by rememberSaveable { mutableStateOf("") }
+    var showPassword by rememberSaveable { mutableStateOf(false) }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -47,7 +61,6 @@ fun LoginScreen(
             .background(radial)
             .windowInsetsPadding(WindowInsets.systemBars)
     ) {
-        // Content
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -74,12 +87,7 @@ fun LoginScreen(
 
             Spacer(Modifier.height(20.dp))
 
-            // Form state
-            var email by rememberSaveable { mutableStateOf("") }
-            var password by rememberSaveable { mutableStateOf("") }
-            var showPassword by rememberSaveable { mutableStateOf(false) }
-
-            // Email
+            // Email field
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
@@ -93,7 +101,7 @@ fun LoginScreen(
 
             Spacer(Modifier.height(12.dp))
 
-            // Password (with Show/Hide)
+            // Password field with show/hide
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
@@ -119,9 +127,36 @@ fun LoginScreen(
 
             Spacer(Modifier.height(16.dp))
 
-            // Black Login button
+            // Login button
             Button(
-                onClick = { onLoginClick?.invoke() },
+                onClick = {
+                    if (email.isEmpty() || password.isEmpty()) {
+                        Toast.makeText(context, "Please fill all fields", Toast.LENGTH_SHORT).show()
+                        return@Button
+                    }
+
+                    auth.signInWithEmailAndPassword(email, password)
+                        .addOnSuccessListener { result ->
+                            val uid = result.user!!.uid
+                            db.collection("users").document(uid)
+                                .get()
+                                .addOnSuccessListener { document ->
+                                    if (document.exists()) {
+                                        val firstName = document.getString("firstName")
+                                        Toast.makeText(context, "Welcome $firstName!", Toast.LENGTH_SHORT).show()
+                                       onLoginClick?.invoke() // Navigate to home screen here
+                                    } else {
+                                        Toast.makeText(context, "User data not found!", Toast.LENGTH_SHORT).show()
+                                    }
+                                }
+                                .addOnFailureListener { e ->
+                                    Toast.makeText(context, "Failed to fetch data: ${e.message}", Toast.LENGTH_SHORT).show()
+                                }
+                        }
+                        .addOnFailureListener { e ->
+                            Toast.makeText(context, "Login failed: ${e.message}", Toast.LENGTH_SHORT).show()
+                        }
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(48.dp),
@@ -148,7 +183,7 @@ fun LoginScreen(
 
             Spacer(Modifier.height(18.dp))
 
-            // Google button
+            // Google login button (placeholder)
             OutlinedButton(
                 onClick = { onGoogleClick?.invoke() },
                 modifier = Modifier
@@ -190,6 +225,7 @@ fun LoginScreen(
     }
 }
 
+
 //SIGN UP SCREEN
 
 @Composable
@@ -197,7 +233,7 @@ fun SignUpScreen(
     onRegisterClick: (() -> Unit)? = null,
     onGoogleClick: (() -> Unit)? = null
 ) {
-    // top pink → white → bottom blue
+    // Gradient background
     val background = Brush.verticalGradient(
         listOf(
             colorResource(R.color.baby_pink),
@@ -205,6 +241,21 @@ fun SignUpScreen(
             colorResource(R.color.baby_blue)
         )
     )
+
+    // Firebase instances
+    val auth = Firebase.auth
+    val db = FirebaseFirestore.getInstance()
+    val context = LocalContext.current
+
+    // Form state
+    var firstName by rememberSaveable { mutableStateOf("") }
+    var phone by rememberSaveable { mutableStateOf("") }
+    var dob by rememberSaveable { mutableStateOf("") }
+    var email by rememberSaveable { mutableStateOf("") }
+    var password by rememberSaveable { mutableStateOf("") }
+    var confirmPassword by rememberSaveable { mutableStateOf("") }
+
+    val fieldShape = RoundedCornerShape(10.dp)
 
     Box(
         modifier = Modifier
@@ -238,101 +289,111 @@ fun SignUpScreen(
 
             Spacer(Modifier.height(18.dp))
 
-            // form state
-            var firstName by rememberSaveable { mutableStateOf("") }
-            var phone by rememberSaveable { mutableStateOf("") }
-            var dob by rememberSaveable { mutableStateOf("") }
-            var email by rememberSaveable { mutableStateOf("") }
-            var password by rememberSaveable { mutableStateOf("") }
-            var confirmPassword by rememberSaveable { mutableStateOf("") }
-
-            // Common style for these fields
-            val fieldShape = RoundedCornerShape(10.dp)
-
+            // TextFields
             OutlinedTextField(
                 value = firstName,
                 onValueChange = { firstName = it },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = 46.dp),
+                modifier = Modifier.fillMaxWidth(),
                 placeholder = { Text("First Name") },
                 singleLine = true,
                 shape = fieldShape
             )
-
             Spacer(Modifier.height(8.dp))
 
             OutlinedTextField(
                 value = phone,
                 onValueChange = { phone = it },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = 46.dp),
+                modifier = Modifier.fillMaxWidth(),
                 placeholder = { Text("Phone Number") },
                 singleLine = true,
                 shape = fieldShape
             )
-
             Spacer(Modifier.height(8.dp))
 
             OutlinedTextField(
                 value = dob,
                 onValueChange = { dob = it },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = 46.dp),
+                modifier = Modifier.fillMaxWidth(),
                 placeholder = { Text("DOB") },
                 singleLine = true,
                 shape = fieldShape
             )
-
             Spacer(Modifier.height(8.dp))
 
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = 46.dp),
+                modifier = Modifier.fillMaxWidth(),
                 placeholder = { Text("email@domain.com") },
                 singleLine = true,
                 shape = fieldShape
             )
-
             Spacer(Modifier.height(8.dp))
 
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = 46.dp),
+                modifier = Modifier.fillMaxWidth(),
                 placeholder = { Text("Password") },
                 singleLine = true,
                 visualTransformation = PasswordVisualTransformation(),
                 shape = fieldShape
             )
-
             Spacer(Modifier.height(8.dp))
 
             OutlinedTextField(
                 value = confirmPassword,
                 onValueChange = { confirmPassword = it },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = 46.dp),
+                modifier = Modifier.fillMaxWidth(),
                 placeholder = { Text("Confirm Password") },
                 singleLine = true,
                 visualTransformation = PasswordVisualTransformation(),
                 shape = fieldShape
             )
-
             Spacer(Modifier.height(16.dp))
 
             // Register button
             Button(
                 onClick = {
-                    onRegisterClick?.invoke() },
+                    // Validation
+                    if (firstName.isBlank() || phone.isBlank() || dob.isBlank() ||
+                        email.isBlank() || password.isBlank() || confirmPassword.isBlank()
+                    ) {
+                        Toast.makeText(context, "Please fill all fields", Toast.LENGTH_SHORT).show()
+                        return@Button
+                    }
+
+                    if (password != confirmPassword) {
+                        Toast.makeText(context, "Passwords do not match", Toast.LENGTH_SHORT).show()
+                        return@Button
+                    }
+
+                    // Prepare user data
+                    val userData = mapOf(
+                        "firstName" to firstName,
+                        "phone" to phone,
+                        "dob" to dob,
+                        "email" to email
+                    )
+
+                    // Create user in Firebase Auth
+                    auth.createUserWithEmailAndPassword(email, password)
+                        .addOnSuccessListener { result ->
+                            val uid = result.user!!.uid
+                            db.collection("users")
+                                .document(uid)
+                                .set(userData)
+                                .addOnSuccessListener {
+                                    Toast.makeText(context, "Registration successful!", Toast.LENGTH_SHORT).show()
+                                }
+                                .addOnFailureListener { e ->
+                                    Toast.makeText(context, "Failed to save user: ${e.message}", Toast.LENGTH_SHORT).show()
+                                }
+                        }
+                        .addOnFailureListener { e ->
+                            Toast.makeText(context, "Auth failed: ${e.message}", Toast.LENGTH_SHORT).show()
+                        }
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(48.dp),
@@ -398,3 +459,4 @@ fun SignUpScreen(
         }
     }
 }
+
