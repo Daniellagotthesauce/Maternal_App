@@ -1,6 +1,7 @@
 package com.example.maternal_childapp.ui
 
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -24,9 +25,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.maternal_childapp.R
 import com.google.firebase.Firebase
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.auth.GoogleAuthProvider
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.ui.res.stringResource
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.api.ApiException
+
 
 //Login screen
 @Composable
@@ -48,6 +55,43 @@ fun LoginScreen(
     val context = LocalContext.current
     val auth = Firebase.auth
     val db = FirebaseFirestore.getInstance()
+
+    val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+        .requestIdToken(stringResource(R.string.default_web_client_id))
+        .requestEmail()
+        .build()
+    val googleSignInClient = GoogleSignIn.getClient(context, gso)
+
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+        try {
+            val account = task.getResult(ApiException::class.java)
+            val credential = GoogleAuthProvider.getCredential(account.idToken, null)
+
+            auth.signInWithCredential(credential)
+                .addOnSuccessListener { firebaseUser ->
+                    val uid = firebaseUser.user!!.uid
+                    val userRef = db.collection("users").document(uid)
+
+                    userRef.get().addOnSuccessListener { document ->
+                        if (!document.exists()) {
+                            val newUser = hashMapOf(
+                                "firstName" to firebaseUser.user!!.displayName.orEmpty(),
+                                "email" to firebaseUser.user!!.email.orEmpty()
+                            )
+                            userRef.set(newUser)
+                        }
+                        Toast.makeText(context, "Welcome ${firebaseUser.user!!.displayName}!", Toast.LENGTH_SHORT).show()
+                        onLoginClick?.invoke()
+                    }
+                }
+                .addOnFailureListener { e ->
+                    Toast.makeText(context, "Google login failed: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+        } catch (e: ApiException) {
+            Toast.makeText(context, "Google sign in failed: ${e.statusCode}", Toast.LENGTH_SHORT).show()
+        }
+    }
 
     // Form state
     var email by rememberSaveable { mutableStateOf("") }
@@ -185,7 +229,12 @@ fun LoginScreen(
 
             // Google login button (placeholder)
             OutlinedButton(
-                onClick = { onGoogleClick?.invoke() },
+                onClick = {
+                    googleSignInClient.signOut().addOnCompleteListener {
+                        val signInIntent = googleSignInClient.signInIntent
+                        launcher.launch(signInIntent)
+                    }
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(48.dp),
@@ -246,6 +295,64 @@ fun SignUpScreen(
     val auth = Firebase.auth
     val db = FirebaseFirestore.getInstance()
     val context = LocalContext.current
+
+    //Google Sign-In setup
+    val gso = remember {
+        com.google.android.gms.auth.api.signin.GoogleSignInOptions.Builder(
+            com.google.android.gms.auth.api.signin.GoogleSignInOptions.DEFAULT_SIGN_IN
+        )
+            .requestIdToken(context.getString(R.string.default_web_client_id)) // from google-services.json
+            .requestEmail()
+            .build()
+    }
+
+    //Create a GoogleSignInClient
+    val googleSignInClient = remember { com.google.android.gms.auth.api.signin.GoogleSignIn.getClient(context, gso) }
+
+    // Launcher for the Google Sign-In intent
+    val launcher = rememberLauncherForActivityResult(
+        contract = androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val task = com.google.android.gms.auth.api.signin.GoogleSignIn.getSignedInAccountFromIntent(result.data)
+        try {
+            val account = task.getResult(com.google.android.gms.common.api.ApiException::class.java)
+            val credential = com.google.firebase.auth.GoogleAuthProvider.getCredential(account.idToken, null)
+            auth.signInWithCredential(credential)
+                .addOnCompleteListener { authTask ->
+                    if (authTask.isSuccessful) {
+                        val firebaseUser = auth.currentUser!!
+                        val uid = firebaseUser.uid
+                        val userRef = db.collection("users").document(uid)
+
+                        userRef.get().addOnSuccessListener { document ->
+                            if (document.exists()) {
+                                // User already exists in Firestore → show message
+                                Toast.makeText(context, "User already registered!", Toast.LENGTH_SHORT).show()
+                            } else {
+                                // New user → create document
+                                val newUser = hashMapOf(
+                                    "firstName" to firebaseUser.displayName.orEmpty(),
+                                    "email" to firebaseUser.email.orEmpty()
+                                )
+                                userRef.set(newUser)
+                                    .addOnSuccessListener {
+                                        Toast.makeText(context, "Registration successful!", Toast.LENGTH_SHORT).show()
+                                        onRegisterClick?.invoke() // Navigate after registration
+                                    }
+                                    .addOnFailureListener { e ->
+                                        Toast.makeText(context, "Failed to save user: ${e.message}", Toast.LENGTH_SHORT).show()
+                                    }
+                            }
+                        }
+                    } else {
+                        Toast.makeText(context, "Google Sign-In Failed: ${authTask.exception?.message}", Toast.LENGTH_SHORT).show()
+                    }
+                }
+        } catch (e: Exception) {
+            Toast.makeText(context, "Google Sign-In Failed: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
 
     // Form state
     var firstName by rememberSaveable { mutableStateOf("") }
@@ -385,6 +492,7 @@ fun SignUpScreen(
                                 .set(userData)
                                 .addOnSuccessListener {
                                     Toast.makeText(context, "Registration successful!", Toast.LENGTH_SHORT).show()
+                                    onRegisterClick?.invoke()
                                 }
                                 .addOnFailureListener { e ->
                                     Toast.makeText(context, "Failed to save user: ${e.message}", Toast.LENGTH_SHORT).show()
@@ -421,7 +529,12 @@ fun SignUpScreen(
 
             // Continue with Google
             OutlinedButton(
-                onClick = { onGoogleClick?.invoke() },
+                onClick = {
+                    googleSignInClient.signOut().addOnCompleteListener {
+                    val signInIntent = googleSignInClient.signInIntent
+                    launcher.launch(signInIntent)
+                  }
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(48.dp),
