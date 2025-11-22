@@ -6,9 +6,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import com.example.maternal_childapp.ui.MorePage
-//import androidx.compose.material3.Text
 import androidx.compose.material3.MaterialTheme
-//import androidx.compose.runtime.Composable
 import androidx.compose.material3.Surface
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -54,6 +52,16 @@ class MainActivity : ComponentActivity() {
                                 onSignUp = { nav.navigate("signup") }
                             )
                         }
+                        composable("login") {
+                            LoginScreen(
+                                onLoginClick = {
+                                    nav.navigate("home") {
+                                        popUpTo("login")
+                                        { inclusive = true }
+                                    }
+                                }
+                            )
+                        }
 
                         composable("onboarding") {
                             OnboardingScreen(
@@ -62,7 +70,7 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        composable("login") {LoginScreen() }
+                        composable ("home") {HomePage()}
                         composable("signup") {
                             SignUpScreen(
                                 onRegisterClick = { nav.navigate("onboarding") }
