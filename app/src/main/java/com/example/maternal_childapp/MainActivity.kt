@@ -21,6 +21,11 @@ import com.example.maternal_childapp.ui.LoginScreen
 import com.example.maternal_childapp.ui.OnboardingScreen
 import com.example.maternal_childapp.ui.Settings
 import com.example.maternal_childapp.ui.SignUpScreen
+import com.example.maternal_childapp.ui.Messages
+import com.example.maternal_childapp.ui.Track
+import com.example.maternal_childapp.ui.Learn
+
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,6 +36,10 @@ class MainActivity : ComponentActivity() {
             Settings()
             ChangeProfile()
             AddChild()
+            HomePage()
+            Messages()
+            Track()
+            Learn()
             MaterialTheme {
                 Surface {
                     val nav = rememberNavController()
