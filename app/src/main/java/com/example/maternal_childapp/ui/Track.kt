@@ -23,8 +23,11 @@ import com.example.maternal_childapp.R
 
 
 
+
 @Composable
-fun Track() {
+fun Track(
+              onVaccineClick: () -> Unit,
+) {
     Box(
         Modifier.fillMaxSize()
     ) {
@@ -133,8 +136,7 @@ fun Track() {
                     ) {
                         Text("Vaccinations", color = colorResource(R.color.black), fontWeight = FontWeight.Bold)
                     }
-
-                    IconButton(onClick = { /* arrow action */ }) {
+                    IconButton(onClick = { onVaccineClick() }) {
                         Icon(
                             imageVector = Icons.Filled.KeyboardArrowRight,
                             contentDescription = "Next",
@@ -149,5 +151,7 @@ fun Track() {
 @Preview(showBackground = true)
 @Composable
 fun TrackPreview() {
-    Track()
+    Track(
+        onVaccineClick = { /* do nothing in preview */ }
+    )
 }
