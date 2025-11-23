@@ -128,6 +128,7 @@ fun BottomBarScreen() {
             composable("messages") { Messages() }
             composable("more") { MorePage() }
             composable("vaccine") { Vaccine() }
+            composable("addChild") { AddChild() }
         }
     }
 }

@@ -126,7 +126,7 @@ fun HomePage(){
             modifier = Modifier.fillMaxWidth()
         ) {
             Button(
-                onClick = { /* Add Baby */ },
+                onClick = {},
                 colors = ButtonDefaults.buttonColors(containerColor = colorResource(id = R.color.strong_pink)),
                 shape = RoundedCornerShape(10.dp),
                 modifier = Modifier.weight(1f).padding(10.dp)

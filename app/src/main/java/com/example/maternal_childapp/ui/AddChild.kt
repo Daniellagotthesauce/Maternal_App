@@ -1,5 +1,7 @@
 package com.example.maternal_childapp.ui
 
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -23,8 +25,15 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.foundation.text.KeyboardOptions
+import com.google.firebase.Firebase
+import com.google.firebase.auth.auth
+import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.FirebaseFirestore
 
 
 @Composable
@@ -47,7 +56,6 @@ fun AddChild() {
                 color = Color.White,
                 modifier = Modifier.fillMaxWidth().height(60.dp),
             ) {
-
                 Text(
                     text = "Add Child",
                     fontSize = 22.sp,
@@ -56,115 +64,224 @@ fun AddChild() {
                     textAlign = TextAlign.Center,
                     modifier = Modifier.padding(15.dp)
                 )
-
             }
-                    Spacer(modifier = Modifier.height(30.dp))
-                    ChildForm()
-                }
-            }
+            Spacer(modifier = Modifier.height(30.dp))
+            ChildForm()
         }
+    }
+}
 
+fun saveChild(
+    firstName: String,
+    lastName: String,
+    dob: String,
+    birthWeight: Double,
+    birthLength: Double,
+    gender: String,
+    onSuccess: () -> Unit,
+    onError: (String) -> Unit
+) {
+    // Validation
+    if (firstName.isBlank()) {
+        onError("First name is required")
+        return
+    }
+    if (lastName.isBlank()) {
+        onError("Last name is required")
+        return
+    }
+    if (dob.isBlank()) {
+        onError("Date of birth is required")
+        return
+    }
+    if (birthWeight <= 0.0) {
+        onError("Valid birth weight is required")
+        return
+    }
+    if (birthLength <= 0.0) {
+        onError("Valid birth length is required")
+        return
+    }
+    if (gender.isBlank()) {
+        onError("Gender is required")
+        return
+    }
+
+    val auth = Firebase.auth
+    val db = FirebaseFirestore.getInstance()
+
+    val motherId = auth.currentUser?.uid
+    if (motherId == null) {
+        Log.e("SAVE_CHILD", "User not logged in")
+        onError("User not logged in")
+        return
+    }
+
+
+    val childData = hashMapOf(
+        "firstName" to firstName,
+        "lastName" to lastName,
+        "dob" to dob,
+        "birthWeight" to birthWeight,
+        "birthLength" to birthLength,
+        "gender" to gender,
+        "motherId" to motherId,
+        "createdAt" to FieldValue.serverTimestamp()
+    )
+
+    db.collection("users")
+        .document(motherId)
+        .collection("children")
+        .add(childData)
+        .addOnSuccessListener {
+            Log.d("SAVE_CHILD", "Child added successfully")
+            onSuccess()
+        }
+        .addOnFailureListener { exception ->
+            Log.e("SAVE_CHILD", "Error adding child", exception)
+            onError("Failed to save: ${exception.message}")
+        }
+}
 
 @Composable
-fun ChildForm(){
+fun ChildForm() {
     var babyFirstName by remember { mutableStateOf("") }
     var babyLastName by remember { mutableStateOf("") }
     var babyDateOfBirth by remember { mutableStateOf("") }
     var birthWeight by remember { mutableStateOf("") }
     var birthLength by remember { mutableStateOf("") }
     var gender by remember { mutableStateOf("") }
-    Column( modifier = Modifier
-        .padding(16.dp)
-        .fillMaxWidth()){
-        TextField(
+    var isLoading by remember { mutableStateOf(false) }
+
+    val context = LocalContext.current
+
+    Column(
+        modifier = Modifier
+            .padding(16.dp)
+            .fillMaxWidth()
+    ) {
+        OutlinedTextField(
             value = babyFirstName,
             onValueChange = { babyFirstName = it },
-            label = { Text("First Name")},
+            label = { Text("First Name") },
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(28.dp)
+            shape = RoundedCornerShape(28.dp),
+            enabled = !isLoading
         )
         Spacer(modifier = Modifier.height(10.dp))
 
-        TextField(
+        OutlinedTextField(
             value = babyLastName,
             onValueChange = { babyLastName = it },
             label = { Text("Last Name") },
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(28.dp)
+            shape = RoundedCornerShape(28.dp),
+            enabled = !isLoading
         )
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        TextField(
+        OutlinedTextField(
             value = babyDateOfBirth,
             onValueChange = { babyDateOfBirth = it },
-            label = { Text("Date of Birth") },
+            label = { Text("Date of Birth (MM/DD/YYYY)") },
+            placeholder = { Text("01/15/2024") },
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(28.dp)
+            shape = RoundedCornerShape(28.dp),
+            enabled = !isLoading
         )
         Spacer(modifier = Modifier.height(10.dp))
 
-        TextField(
+        OutlinedTextField(
             value = birthWeight,
             onValueChange = { birthWeight = it },
             label = { Text("Birth Weight (lbs)") },
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(28.dp)
+            shape = RoundedCornerShape(28.dp),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+            enabled = !isLoading
         )
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        TextField(
+        OutlinedTextField(
             value = birthLength,
-            onValueChange = {birthLength = it },
+            onValueChange = { birthLength = it },
             label = { Text("Birth Length (inches)") },
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(28.dp)
+            shape = RoundedCornerShape(28.dp),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+            enabled = !isLoading
         )
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        TextField(
+        OutlinedTextField(
             value = gender,
-            onValueChange = { gender  = it },
+            onValueChange = { gender = it },
             label = { Text("Gender") },
+            placeholder = { Text("Male/Female/Other") },
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(28.dp)
+            shape = RoundedCornerShape(28.dp),
+            enabled = !isLoading
         )
 
         Spacer(modifier = Modifier.height(20.dp))
-        SaveChildButton("Save Changes", Modifier.fillMaxWidth(), { println{ "Profile Saved!"} })
 
+        Button(
+            onClick = {
+                isLoading = true
+                val weightValue = birthWeight.toDoubleOrNull() ?: 0.0
+                val lengthValue = birthLength.toDoubleOrNull() ?: 0.0
+
+                saveChild(
+                    firstName = babyFirstName.trim(),
+                    lastName = babyLastName.trim(),
+                    dob = babyDateOfBirth.trim(),
+                    birthWeight = weightValue,
+                    birthLength = lengthValue,
+                    gender = gender.trim(),
+                    onSuccess = {
+                        isLoading = false
+                        Toast.makeText(context, "Child added successfully!", Toast.LENGTH_SHORT).show()
+                        // Clear form
+                        babyFirstName = ""
+                        babyLastName = ""
+                        babyDateOfBirth = ""
+                        birthWeight = ""
+                        birthLength = ""
+                        gender = ""
+                    },
+                    onError = { error ->
+                        isLoading = false
+                        Toast.makeText(context, error, Toast.LENGTH_LONG).show()
+                    }
+                )
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp),
+            shape = RoundedCornerShape(28.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color.White,
+                contentColor = Color.Black
+            ),
+            enabled = !isLoading
+        ) {
+            if (isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    color = Color.Black
+                )
+            } else {
+                Text(text = "Save Child", textAlign = TextAlign.Center)
+            }
+        }
     }
 }
 
-@Composable
-private fun SaveChildButton(
-    text: String,
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit
-)
-{
-    Button(
-        onClick = onClick,
-        modifier = modifier.height(52.dp),
-        shape = RoundedCornerShape(28.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = colorResource(R.color.white),
-            contentColor = colorResource(R.color.black)
-        )
-    ) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.titleMedium.copy(
-                fontWeight = FontWeight.SemiBold,
-                textAlign = TextAlign.Center
-            )
-        )
-    }
-}
 @Preview(showBackground = true)
 @Composable
-fun AddChildPreiew() {
-    AddChild()
+fun AddChildPreview() {
+    ChildForm()
 }

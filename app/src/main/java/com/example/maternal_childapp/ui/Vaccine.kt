@@ -1,5 +1,6 @@
 package com.example.maternal_childapp.ui
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -24,6 +25,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.maternal_childapp.R
 import androidx.compose.ui.res.colorResource
+import com.google.firebase.Firebase
+import com.google.firebase.auth.auth
+import com.google.firebase.firestore.FirebaseFirestore
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
@@ -31,14 +35,18 @@ import java.time.format.TextStyle
 import java.util.Locale
 
 data class Child(
-    val id: Int,
-    val name: String,
-    val dateOfBirth: LocalDate
+    val id: String = "",
+    val firstName: String = "",
+    val lastName: String = "",
+    val dob: String = "",
+    val birthWeight: Double = 0.0,
+    val birthLength: Double = 0.0,
+    val gender: String = ""
 )
 
 data class VaccineRecord(
     val id: Int,
-    val childId: Int,
+    val childId: String,
     val name: String,
     val scheduledDate: LocalDate,
     val isCompleted: Boolean = false,
@@ -48,28 +56,52 @@ data class VaccineRecord(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Vaccine(onBackClick: () -> Unit = {}) {
-    // Sample children (you'll load this from database)
-    val children = remember {
-        listOf(
-            Child(1, "Emma", LocalDate.now().minusMonths(2)),
-            Child(2, "James", LocalDate.now().minusYears(1).minusMonths(3)),
-            Child(3, "Sarah", LocalDate.now().minusYears(2))
-        )
-    }
+    val auth = Firebase.auth
+    val db = FirebaseFirestore.getInstance()
+    val userId = auth.currentUser?.uid
 
-    var selectedChild by remember { mutableStateOf(children.firstOrNull()) }
+    var children by remember { mutableStateOf(listOf<Child>()) }
+    var selectedChild by remember { mutableStateOf<Child?>(null) }
     var showChildDropdown by remember { mutableStateOf(false) }
     var showAddDialog by remember { mutableStateOf(false) }
+
+    // Load children from Firestore
+    LaunchedEffect(userId) {
+        if (userId != null) {
+            db.collection("users")
+                .document(userId)
+                .collection("children")
+                .get()
+                .addOnSuccessListener { snapshot ->
+                    val loadedChildren = snapshot.documents.map { doc ->
+                        Child(
+                            id = doc.id,
+                            firstName = doc.getString("firstName") ?: "",
+                            lastName = doc.getString("lastName") ?: "",
+                            dob = doc.getString("dob") ?: "",
+                            birthWeight = doc.getDouble("birthWeight") ?: 0.0,
+                            birthLength = doc.getDouble("birthLength") ?: 0.0,
+                            gender = doc.getString("gender") ?: ""
+                        )
+                    }
+                    children = loadedChildren
+                    if (loadedChildren.isNotEmpty()) selectedChild = loadedChildren.first()
+                }
+                .addOnFailureListener { e ->
+                    Log.e("Vaccine", "Error loading children", e)
+                }
+        }
+    }
 
     // Sample vaccine records (you'll load this from database based on selected child)
     var vaccineRecords by remember {
         mutableStateOf(
             listOf(
-                VaccineRecord(1, 1, "BCG", LocalDate.now().plusDays(5)),
-                VaccineRecord(2, 1, "Polio (OPV 0)", LocalDate.now().plusDays(5)),
-                VaccineRecord(3, 1, "Hepatitis B", LocalDate.now().minusDays(3)),
-                VaccineRecord(4, 1, "DTP 1", LocalDate.now().plusDays(42)),
-                VaccineRecord(5, 1, "Polio 1", LocalDate.now().plusDays(42))
+                VaccineRecord(1, "1", "BCG", LocalDate.now().plusDays(5)),
+                VaccineRecord(2, "1", "Polio (OPV 0)", LocalDate.now().plusDays(5)),
+                VaccineRecord(3, "1", "Hepatitis B", LocalDate.now().minusDays(3)),
+                VaccineRecord(4, "1", "DTP 1", LocalDate.now().plusDays(42)),
+                VaccineRecord(5, "1", "Polio 1", LocalDate.now().plusDays(42))
             )
         )
     }
@@ -77,7 +109,6 @@ fun Vaccine(onBackClick: () -> Unit = {}) {
     // Filter vaccines for selected child
     val childVaccines = vaccineRecords.filter { it.childId == selectedChild?.id }
     val vaccineDays = childVaccines.associate { it.scheduledDate to it.name }
-
     var selectedVaccine by remember { mutableStateOf<String?>(null) }
 
     Surface(
@@ -154,7 +185,7 @@ fun Vaccine(onBackClick: () -> Unit = {}) {
                                 color = Color.Gray
                             )
                             Text(
-                                text = selectedChild?.name ?: "Select a child",
+                                text = selectedChild?.firstName ?: "Select a child",
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold
                             )
@@ -176,9 +207,9 @@ fun Vaccine(onBackClick: () -> Unit = {}) {
                         DropdownMenuItem(
                             text = {
                                 Column {
-                                    Text(child.name, fontWeight = FontWeight.Bold)
+                                    Text(child.firstName, fontWeight = FontWeight.Bold)
                                     Text(
-                                        "DOB: ${child.dateOfBirth.format(DateTimeFormatter.ofPattern("MMMM d, yyyy"))}",
+                                        "DOB: ${child.dob}",
                                         fontSize = 12.sp,
                                         color = Color.Gray
                                     )
@@ -344,7 +375,7 @@ fun Vaccine(onBackClick: () -> Unit = {}) {
                     // Add new vaccine record
                     val newVaccine = VaccineRecord(
                         id = vaccineRecords.maxOfOrNull { it.id }?.plus(1) ?: 1,
-                        childId = selectedChild?.id ?: 0,
+                        childId = selectedChild?.id ?: "",
                         name = name,
                         scheduledDate = date
                     )
