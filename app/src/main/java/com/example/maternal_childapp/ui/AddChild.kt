@@ -135,6 +135,40 @@ fun saveChild(
         .add(childData)
         .addOnSuccessListener {
             Log.d("SAVE_CHILD", "Child added successfully")
+            db.collection("users")
+                .document(motherId)
+                .collection("children")
+                .add(childData)
+                .addOnSuccessListener { childRef ->
+
+                    val childId = childRef.id
+
+                    val weightKg = birthWeight * 0.453592
+                    val heightCm = birthLength * 2.54
+
+                    val growthData = hashMapOf(
+                        "title" to "Birth",
+                        "date" to FieldValue.serverTimestamp(),
+                        "weightKg" to weightKg,
+                        "heightCm" to heightCm,
+                        "childId" to childId
+                    )
+
+                    db.collection("users")
+                        .document(motherId)
+                        .collection("growthLogs")
+                        .add(growthData)
+                        .addOnSuccessListener {
+                            onSuccess()
+                        }
+                        .addOnFailureListener { e ->
+                            onError("Child saved but growth log failed: ${e.message}")
+                        }
+                }
+                .addOnFailureListener { e ->
+                    onError("Failed to save child: ${e.message}")
+                }
+
             onSuccess()
         }
         .addOnFailureListener { exception ->

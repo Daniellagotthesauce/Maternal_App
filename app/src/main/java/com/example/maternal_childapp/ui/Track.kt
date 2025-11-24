@@ -1,12 +1,12 @@
 package com.example.maternal_childapp.ui
 
-
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.outlined.*
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Straighten
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -21,12 +21,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.maternal_childapp.R
 
-
-
-
 @Composable
 fun Track(
-              onVaccineClick: () -> Unit,
+    onGrowthClick: () -> Unit,
+    onVaccineClick: () -> Unit,
 ) {
     Box(
         Modifier.fillMaxSize()
@@ -49,7 +47,7 @@ fun Track(
             ) {
                 Box(modifier = Modifier.fillMaxSize()) {
                     IconButton(
-                        onClick = { /* Handle back action */ },
+                        onClick = { /* Handle back action if needed */ },
                         modifier = Modifier.align(Alignment.CenterStart)
                     ) {
                         Icon(
@@ -83,10 +81,12 @@ fun Track(
                 shape = RoundedCornerShape(0.dp),
                 colors = CardDefaults.cardColors(containerColor = Color.White),
                 elevation = CardDefaults.cardElevation(4.dp),
-                modifier = Modifier.fillMaxWidth()//.padding(10.dp)
+                modifier = Modifier.fillMaxWidth()
             ) {
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(15.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(15.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -97,11 +97,17 @@ fun Track(
                         modifier = Modifier.size(24.dp)
                     )
                     Column(
-                        modifier = Modifier.weight(1f).padding(start = 12.dp)
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(start = 12.dp)
                     ) {
-                        Text("Growth", color = colorResource(R.color.black), fontWeight = FontWeight.Bold)
+                        Text(
+                            "Growth",
+                            color = colorResource(R.color.black),
+                            fontWeight = FontWeight.Bold
+                        )
                     }
-                    IconButton(onClick = { /* arrow action */ }) {
+                    IconButton(onClick = { onGrowthClick() }) {
                         Icon(
                             imageVector = Icons.Filled.KeyboardArrowRight,
                             contentDescription = "Next",
@@ -110,15 +116,19 @@ fun Track(
                     }
                 }
             }
+
             Spacer(modifier = Modifier.height(20.dp))
+
             Card(
                 shape = RoundedCornerShape(0.dp),
                 colors = CardDefaults.cardColors(containerColor = Color.White),
                 elevation = CardDefaults.cardElevation(4.dp),
-                modifier = Modifier.fillMaxWidth()//.padding(10.dp)
+                modifier = Modifier.fillMaxWidth()
             ) {
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(20.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(20.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -134,7 +144,11 @@ fun Track(
                             .weight(1f)
                             .padding(start = 12.dp)
                     ) {
-                        Text("Vaccinations", color = colorResource(R.color.black), fontWeight = FontWeight.Bold)
+                        Text(
+                            "Vaccinations",
+                            color = colorResource(R.color.black),
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                     IconButton(onClick = { onVaccineClick() }) {
                         Icon(
@@ -148,10 +162,12 @@ fun Track(
         }
     }
 }
+
 @Preview(showBackground = true)
 @Composable
 fun TrackPreview() {
     Track(
-        onVaccineClick = { /* do nothing in preview */ }
+        onGrowthClick = {  },
+        onVaccineClick = { }
     )
 }
