@@ -1,12 +1,15 @@
 package com.example.maternal_childapp.ui
 
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
@@ -17,6 +20,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -24,17 +29,15 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.maternal_childapp.R
-import androidx.compose.ui.res.colorResource
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.util.Locale
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 
 data class Child(
     val id: String = "",
@@ -47,15 +50,135 @@ data class Child(
 )
 
 data class VaccineRecord(
-    val id: Int,
-    val childId: String,
-    val name: String,
-    val scheduledDate: LocalDate,
+    val id: String = "",
+    val childId: String = "",
+    val name: String = "",
+    val scheduledDate: String = "",
     val isCompleted: Boolean = false,
-    val completedDate: LocalDate? = null,
+    val completedDate: String? = null,
     val location: String? = null,
     val notes: String? = null
-)
+) {
+    // Helper functions to convert to/from LocalDate
+    fun getScheduledLocalDate(): LocalDate = LocalDate.parse(scheduledDate)
+    fun getCompletedLocalDate(): LocalDate? = completedDate?.let { LocalDate.parse(it) }
+}
+
+fun saveVaccine(
+    userId: String,
+    childId: String,
+    name: String,
+    scheduledDate: LocalDate,
+    location: String,
+    notes: String,
+    onSuccess: () -> Unit,
+    onError: (String) -> Unit
+) {
+    if (name.isBlank()) {
+        onError("Vaccine name is required")
+        return
+    }
+
+    val db = FirebaseFirestore.getInstance()
+
+    val vaccineData = hashMapOf(
+        "name" to name,
+        "scheduledDate" to scheduledDate.toString(),
+        "isCompleted" to false,
+        "completedDate" to null,
+        "location" to location.ifEmpty { "Not specified" },
+        "notes" to notes,
+        "childId" to childId,
+        "createdAt" to FieldValue.serverTimestamp()
+    )
+
+    db.collection("users")
+        .document(userId)
+        .collection("children")
+        .document(childId)
+        .collection("vaccine")
+        .add(vaccineData)
+        .addOnSuccessListener { documentReference ->
+            Log.d("SAVE_VACCINE", "Vaccine added with ID: ${documentReference.id}")
+            onSuccess()
+        }
+        .addOnFailureListener { exception ->
+            Log.e("SAVE_VACCINE", "Error adding vaccine", exception)
+            onError("Failed to save: ${exception.message}")
+        }
+}
+
+fun loadVaccines(
+    userId: String,
+    childId: String,
+    onSuccess: (List<VaccineRecord>) -> Unit,
+    onError: (String) -> Unit
+) {
+    val db = FirebaseFirestore.getInstance()
+
+    db.collection("users")
+        .document(userId)
+        .collection("children")
+        .document(childId)
+        .collection("vaccine")
+        .get()
+        .addOnSuccessListener { snapshot ->
+            val vaccines = snapshot.documents.mapNotNull { doc ->
+                try {
+                    VaccineRecord(
+                        id = doc.id,
+                        childId = doc.getString("childId") ?: "",
+                        name = doc.getString("name") ?: "",
+                        scheduledDate = doc.getString("scheduledDate") ?: "",
+                        isCompleted = doc.getBoolean("isCompleted") ?: false,
+                        completedDate = doc.getString("completedDate"),
+                        location = doc.getString("location"),
+                        notes = doc.getString("notes")
+                    )
+                } catch (e: Exception) {
+                    Log.e("LOAD_VACCINES", "Error parsing vaccine document", e)
+                    null
+                }
+            }
+            Log.d("LOAD_VACCINES", "Loaded ${vaccines.size} vaccines for child $childId")
+            onSuccess(vaccines)
+        }
+        .addOnFailureListener { exception ->
+            Log.e("LOAD_VACCINES", "Error loading vaccines", exception)
+            onError("Failed to load vaccines: ${exception.message}")
+        }
+}
+
+fun markVaccineComplete(
+    userId: String,
+    childId: String,
+    vaccineId: String,
+    onSuccess: () -> Unit,
+    onError: (String) -> Unit
+) {
+    val db = FirebaseFirestore.getInstance()
+
+    val updates = hashMapOf<String, Any>(
+        "isCompleted" to true,
+        "completedDate" to LocalDate.now().toString()
+    )
+
+    db.collection("users")
+        .document(userId)
+        .collection("children")
+        .document(childId)
+        .collection("vaccine")
+        .document(vaccineId)
+        .update(updates)
+        .addOnSuccessListener {
+            Log.d("UPDATE_VACCINE", "Vaccine marked complete")
+            onSuccess()
+        }
+        .addOnFailureListener { exception ->
+            Log.e("UPDATE_VACCINE", "Error marking vaccine complete", exception)
+            onError("Failed to update: ${exception.message}")
+        }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -84,7 +207,7 @@ fun VaccineListItem(
                     color = if (vaccine.isCompleted) Color.Gray else Color.Black
                 )
                 Text(
-                    vaccine.scheduledDate.format(
+                    vaccine.getScheduledLocalDate().format(
                         DateTimeFormatter.ofPattern("MMMM d, yyyy")
                     ),
                     fontSize = 12.sp,
@@ -119,7 +242,7 @@ fun VaccineListItem(
             }
         }
 
-        // Expandable details
+
         if (showDetails) {
             Spacer(modifier = Modifier.height(8.dp))
             Column(
@@ -130,7 +253,6 @@ fun VaccineListItem(
             ) {
                 vaccine.location?.let {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("📍 ", fontSize = 14.sp)
                         Text(
                             "Location: $it",
                             fontSize = 13.sp,
@@ -142,9 +264,8 @@ fun VaccineListItem(
 
                 if (vaccine.isCompleted && vaccine.completedDate != null) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("✅ ", fontSize = 14.sp)
                         Text(
-                            "Completed: ${vaccine.completedDate.format(DateTimeFormatter.ofPattern("MMMM d, yyyy"))}",
+                            "Completed: ${vaccine.getCompletedLocalDate()?.format(DateTimeFormatter.ofPattern("MMMM d, yyyy"))}",
                             fontSize = 13.sp,
                             color = Color.DarkGray
                         )
@@ -154,7 +275,6 @@ fun VaccineListItem(
 
                 if (!vaccine.notes.isNullOrEmpty()) {
                     Row(verticalAlignment = Alignment.Top) {
-                        Text("📝 ", fontSize = 14.sp)
                         Text(
                             "Notes: ${vaccine.notes}",
                             fontSize = 13.sp,
@@ -171,6 +291,7 @@ fun VaccineListItem(
 
 @Composable
 fun Vaccine(onBackClick: () -> Unit = {}) {
+    val context = LocalContext.current
     val auth = Firebase.auth
     val db = FirebaseFirestore.getInstance()
     val userId = auth.currentUser?.uid
@@ -179,6 +300,8 @@ fun Vaccine(onBackClick: () -> Unit = {}) {
     var selectedChild by remember { mutableStateOf<Child?>(null) }
     var showChildDropdown by remember { mutableStateOf(false) }
     var showAddDialog by remember { mutableStateOf(false) }
+    var vaccineRecords by remember { mutableStateOf(listOf<VaccineRecord>()) }
+    var isLoadingVaccines by remember { mutableStateOf(false) }
 
     // Load children from Firestore
     LaunchedEffect(userId) {
@@ -208,26 +331,30 @@ fun Vaccine(onBackClick: () -> Unit = {}) {
         }
     }
 
-    // Sample vaccine records
-    var vaccineRecords by remember {
-        mutableStateOf(
-            listOf(
-                VaccineRecord(1, "1", "BCG", LocalDate.now().plusDays(5)),
-                VaccineRecord(2, "1", "Polio (OPV 0)", LocalDate.now().plusDays(5)),
-                VaccineRecord(3, "1", "Hepatitis B", LocalDate.now().minusDays(3)),
-                VaccineRecord(4, "1", "DTP 1", LocalDate.now().plusDays(42)),
-                VaccineRecord(5, "1", "Polio 1", LocalDate.now().plusDays(42))
+    LaunchedEffect(selectedChild?.id) {
+        if (userId != null && selectedChild?.id != null) {
+            isLoadingVaccines = true
+            loadVaccines(
+                userId = userId,
+                childId = selectedChild!!.id,
+                onSuccess = { vaccines ->
+                    vaccineRecords = vaccines
+                    isLoadingVaccines = false
+                },
+                onError = { error ->
+                    isLoadingVaccines = false
+                    Toast.makeText(context, error, Toast.LENGTH_SHORT).show()
+                }
             )
-        )
+        }
     }
 
-    // Filter vaccines for selected child
     val childVaccines = vaccineRecords.filter { it.childId == selectedChild?.id }
-    val vaccineDays = childVaccines.associate { it.scheduledDate to it.name }
+    val vaccineDays = childVaccines.associate { it.getScheduledLocalDate() to it.name }
     var selectedVaccine by remember { mutableStateOf<String?>(null) }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // Background Image
+
         Image(
             painter = painterResource(id = R.drawable.background2),
             contentDescription = null,
@@ -238,7 +365,6 @@ fun Vaccine(onBackClick: () -> Unit = {}) {
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
-            // Top Bar
             Surface(
                 color = Color.White,
                 modifier = Modifier.fillMaxWidth()
@@ -267,7 +393,7 @@ fun Vaccine(onBackClick: () -> Unit = {}) {
                 }
             }
 
-            // Scrollable Content
+
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
@@ -275,7 +401,7 @@ fun Vaccine(onBackClick: () -> Unit = {}) {
                     .verticalScroll(rememberScrollState())
                     .padding(16.dp)
             ) {
-                // Child Selector Dropdown
+
                 Card(
                     colors = CardDefaults.cardColors(containerColor = Color.White),
                     modifier = Modifier
@@ -309,7 +435,6 @@ fun Vaccine(onBackClick: () -> Unit = {}) {
                     }
                 }
 
-                // Dropdown Menu
                 DropdownMenu(
                     expanded = showChildDropdown,
                     onDismissRequest = { showChildDropdown = false }
@@ -336,13 +461,13 @@ fun Vaccine(onBackClick: () -> Unit = {}) {
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Calendar
+                // The Calendar
                 Card(
                     colors = CardDefaults.cardColors(containerColor = Color.White),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     SimpleCalendarView(
-                        vaccineDays = vaccineDays,
+                        vaccines = childVaccines,
                         onVaccineClick = { date, vaccine ->
                             selectedVaccine = "${date.format(DateTimeFormatter.ofPattern("MMMM d, yyyy"))}: $vaccine"
                         },
@@ -357,6 +482,10 @@ fun Vaccine(onBackClick: () -> Unit = {}) {
                     colors = CardDefaults.cardColors(containerColor = Color.White),
                     modifier = Modifier.fillMaxWidth()
                 ) {
+                    // Dynamic Legend
+                    val hasPendingVaccine = childVaccines.any { !it.isCompleted }
+                    val hasCompletedVaccine = childVaccines.any { it.isCompleted }
+
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(
                             text = "Legend",
@@ -365,6 +494,7 @@ fun Vaccine(onBackClick: () -> Unit = {}) {
                             modifier = Modifier.padding(bottom = 8.dp)
                         )
 
+                        // Today
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Box(
                                 modifier = Modifier
@@ -377,16 +507,33 @@ fun Vaccine(onBackClick: () -> Unit = {}) {
 
                         Spacer(modifier = Modifier.height(8.dp))
 
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Box(
-                                modifier = Modifier
-                                    .size(20.dp)
-                                    .background(colorResource(R.color.soft_blue), CircleShape)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text("Vaccine Day", fontSize = 14.sp)
+                        // Vaccine Day (pending)
+                        if (hasPendingVaccine) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(20.dp)
+                                        .background(colorResource(R.color.soft_blue), CircleShape)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text("Vaccine Day", fontSize = 14.sp)
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        // Completed
+                        if (hasCompletedVaccine) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(20.dp)
+                                        .background(colorResource(R.color.grayish), CircleShape)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text("Completed", fontSize = 14.sp)
+                            }
                         }
                     }
+
                 }
 
                 // Selected Vaccine Info
@@ -453,21 +600,44 @@ fun Vaccine(onBackClick: () -> Unit = {}) {
                                 modifier = Modifier.padding(vertical = 8.dp)
                             )
                         } else {
-                            childVaccines.sortedBy { it.scheduledDate }.forEach { vaccine ->
-                                VaccineListItem(
-                                    vaccine = vaccine,
-                                    onMarkComplete = {
-                                        vaccineRecords = vaccineRecords.map {
-                                            if (it.id == vaccine.id) {
-                                                it.copy(
-                                                    isCompleted = true,
-                                                    completedDate = LocalDate.now()
+                            childVaccines.sortedBy { it.getScheduledLocalDate() }
+                                .forEach { vaccine ->
+                                    VaccineListItem(
+                                        vaccine = vaccine,
+                                        onMarkComplete = {
+                                            if (userId != null && selectedChild != null) {
+                                                markVaccineComplete(
+                                                    userId = userId,
+                                                    childId = selectedChild!!.id,
+                                                    vaccineId = vaccine.id,
+                                                    onSuccess = {
+                                                        Toast.makeText(
+                                                            context,
+                                                            "Vaccine marked complete!",
+                                                            Toast.LENGTH_SHORT
+                                                        ).show()
+                                                        // Reload vaccines
+                                                        loadVaccines(
+                                                            userId = userId,
+                                                            childId = selectedChild!!.id,
+                                                            onSuccess = { vaccines ->
+                                                                vaccineRecords = vaccines
+                                                            },
+                                                            onError = { }
+                                                        )
+                                                    },
+                                                    onError = { error ->
+                                                        Toast.makeText(
+                                                            context,
+                                                            error,
+                                                            Toast.LENGTH_SHORT
+                                                        ).show()
+                                                    }
                                                 )
-                                            } else it
+                                            }
                                         }
-                                    }
-                                )
-                            }
+                                    )
+                                }
                         }
                     }
                 }
@@ -477,20 +647,34 @@ fun Vaccine(onBackClick: () -> Unit = {}) {
         }
 
         // Add Vaccine Dialog
-        if (showAddDialog) {
+        if (showAddDialog && selectedChild != null && userId != null) {
             AddVaccineDialog(
                 onDismiss = { showAddDialog = false },
                 onAdd = { name, date, location, notes ->
-                    val newVaccine = VaccineRecord(
-                        id = vaccineRecords.maxOfOrNull { it.id }?.plus(1) ?: 1,
-                        childId = selectedChild?.id ?: "",
+                    saveVaccine(
+                        userId = userId,
+                        childId = selectedChild!!.id,
                         name = name,
                         scheduledDate = date,
                         location = location,
-                        notes = notes
+                        notes = notes,
+                        onSuccess = {
+                            Toast.makeText(context, "Vaccine added successfully!", Toast.LENGTH_SHORT).show()
+                            // Reload vaccines after adding
+                            loadVaccines(
+                                userId = userId,
+                                childId = selectedChild!!.id,
+                                onSuccess = { vaccines ->
+                                    vaccineRecords = vaccines
+                                },
+                                onError = { }
+                            )
+                            showAddDialog = false
+                        },
+                        onError = { error ->
+                            Toast.makeText(context, error, Toast.LENGTH_LONG).show()
+                        }
                     )
-                    vaccineRecords = vaccineRecords + newVaccine
-                    showAddDialog = false
                 }
             )
         }
@@ -595,7 +779,7 @@ fun AddVaccineDialog(
 
 @Composable
 fun SimpleCalendarView(
-    vaccineDays: Map<LocalDate, String>,
+    vaccines: List<VaccineRecord>,
     onVaccineClick: (LocalDate, String) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -606,60 +790,41 @@ fun SimpleCalendarView(
     val firstDayOfWeek = firstDayOfMonth.dayOfWeek.value % 7
 
     Column(modifier = modifier) {
-        // Month navigation
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp),
+            modifier = Modifier .fillMaxWidth() .padding(vertical = 8.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(
-                onClick = { currentMonth = currentMonth.minusMonths(1) }
-            ) {
-                Text("◀", fontSize = 20.sp, color = colorResource(R.color.strong_pink))
-            }
-
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            verticalAlignment = Alignment.CenterVertically )
+        { IconButton(
+            onClick = { currentMonth = currentMonth.minusMonths(1) }
+        ){ Text("◀", fontSize = 20.sp, color = colorResource(R.color.strong_pink))
+        }
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
                     text = currentMonth.month.getDisplayName(TextStyle.FULL, Locale.getDefault()),
                     fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold
-                )
+                    fontWeight = FontWeight.Bold )
                 Text(
                     text = currentMonth.year.toString(),
                     fontSize = 14.sp,
-                    color = Color.Gray
-                )
-            }
-
-            IconButton(
-                onClick = { currentMonth = currentMonth.plusMonths(1) }
-            ) {
-                Text("▶", fontSize = 20.sp, color = colorResource(R.color.soft_blue))
-            }
-        }
-
+                    color = Color.Gray ) }
+            IconButton( onClick = { currentMonth = currentMonth.plusMonths(1) } )
+            { Text("▶", fontSize = 20.sp, color = colorResource(R.color.soft_blue)) } }
         // Days of week
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            listOf("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat").forEach { day ->
+        ){
+            listOf("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat").forEach{ day ->
                 Text(
                     text = day,
                     textAlign = TextAlign.Center,
                     fontWeight = FontWeight.Bold,
                     fontSize = 12.sp,
                     color = Color.Gray,
-                    modifier = Modifier.weight(1f)
-                )
-            }
-        }
-
+                    modifier = Modifier.weight(1f) ) } }
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Calendar grid
         var dayCounter = 1
         for (week in 0..5) {
             if (dayCounter > daysInMonth) break
@@ -674,7 +839,7 @@ fun SimpleCalendarView(
                     } else if (dayCounter <= daysInMonth) {
                         val currentDate = currentMonth.atDay(dayCounter)
                         val isToday = currentDate == today
-                        val isVaccineDay = vaccineDays.containsKey(currentDate)
+                        val vaccineForDay = vaccines.find { it.getScheduledLocalDate() == currentDate }
 
                         Box(
                             modifier = Modifier
@@ -684,14 +849,15 @@ fun SimpleCalendarView(
                                 .background(
                                     when {
                                         isToday -> colorResource(R.color.strong_pink)
-                                        isVaccineDay -> colorResource(R.color.soft_blue)
+                                        vaccineForDay != null && !vaccineForDay.isCompleted -> colorResource(R.color.soft_blue)
+                                        vaccineForDay != null && vaccineForDay.isCompleted -> colorResource(R.color.grayish)
                                         else -> Color.Transparent
                                     },
                                     CircleShape
                                 )
-                                .clickable(enabled = isVaccineDay) {
-                                    vaccineDays[currentDate]?.let { vaccine ->
-                                        onVaccineClick(currentDate, vaccine)
+                                .clickable(enabled = vaccineForDay != null) {
+                                    vaccineForDay?.let { v ->
+                                        onVaccineClick(currentDate, v.name)
                                     }
                                 },
                             contentAlignment = Alignment.Center
@@ -699,7 +865,7 @@ fun SimpleCalendarView(
                             Text(
                                 text = dayCounter.toString(),
                                 color = when {
-                                    isToday || isVaccineDay -> Color.White
+                                    isToday || vaccineForDay != null -> Color.White
                                     else -> Color.Black
                                 },
                                 fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal,
@@ -719,118 +885,5 @@ fun SimpleCalendarView(
 @Preview(showBackground = true)
 @Composable
 fun VaccinePreview() {
-    // Preview with mock data - Firebase isn't available in previews
-    val mockVaccineRecords = listOf(
-        VaccineRecord(1, "mock", "BCG", LocalDate.now().plusDays(5)),
-        VaccineRecord(2, "mock", "Polio (OPV 0)", LocalDate.now().plusDays(5)),
-        VaccineRecord(3, "mock", "Hepatitis B", LocalDate.now().minusDays(3), isCompleted = true, completedDate = LocalDate.now().minusDays(3)),
-        VaccineRecord(4, "mock", "DTP 1", LocalDate.now().plusDays(42)),
-        VaccineRecord(5, "mock", "Polio 1", LocalDate.now().plusDays(42))
-    )
-
-    val vaccineDays = mockVaccineRecords.associate { it.scheduledDate to it.name }
-    var selectedVaccine by remember { mutableStateOf<String?>(null) }
-
-    Box(modifier = Modifier.fillMaxSize()) {
-        Image(
-            painter = painterResource(id = R.drawable.background2),
-            contentDescription = null,
-            modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Crop
-        )
-
-        Column(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            Surface(
-                color = Color.White,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                ) {
-                    Text(
-                        text = "Vaccine Tracker",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 22.sp,
-                        modifier = Modifier.align(Alignment.Center)
-                    )
-                }
-            }
-
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .padding(16.dp)
-            ) {
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column {
-                            Text(
-                                text = "Selected Child",
-                                fontSize = 12.sp,
-                                color = Color.Gray
-                            )
-                            Text(
-                                text = "Preview Child",
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    SimpleCalendarView(
-                        vaccineDays = vaccineDays,
-                        onVaccineClick = { date, vaccine ->
-                            selectedVaccine = "${date.format(DateTimeFormatter.ofPattern("MMMM d, yyyy"))}: $vaccine"
-                        },
-                        modifier = Modifier.padding(16.dp)
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text(
-                            text = "Upcoming Vaccines",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 16.sp
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        mockVaccineRecords.sortedBy { it.scheduledDate }.forEach { vaccine ->
-                            VaccineListItem(
-                                vaccine = vaccine,
-                                onMarkComplete = { }
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
+    Vaccine()
 }
