@@ -20,6 +20,7 @@ import androidx.navigation.compose.rememberNavController
 @Composable
 fun MainScreen(navController: NavHostController) {
 
+
         NavHost(
             navController = navController,
             startDestination = "landing",
@@ -61,7 +62,7 @@ fun MainScreen(navController: NavHostController) {
                 )
             }
             composable("home") {
-                HomePage(onAddClick = { navController.navigate("addChild") })
+                BottomBarScreen()
             }
             composable("track") {
                 Track(
