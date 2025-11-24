@@ -33,6 +33,8 @@ import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.util.Locale
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 
 data class Child(
     val id: String = "",
@@ -50,10 +52,123 @@ data class VaccineRecord(
     val name: String,
     val scheduledDate: LocalDate,
     val isCompleted: Boolean = false,
-    val completedDate: LocalDate? = null
+    val completedDate: LocalDate? = null,
+    val location: String? = null,
+    val notes: String? = null
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun VaccineListItem(
+    vaccine: VaccineRecord,
+    onMarkComplete: () -> Unit
+) {
+    var showDetails by remember { mutableStateOf(false) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { showDetails = !showDetails }
+            .padding(vertical = 8.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    vaccine.name,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = if (vaccine.isCompleted) Color.Gray else Color.Black
+                )
+                Text(
+                    vaccine.scheduledDate.format(
+                        DateTimeFormatter.ofPattern("MMMM d, yyyy")
+                    ),
+                    fontSize = 12.sp,
+                    color = Color.Gray
+                )
+            }
+
+            if (vaccine.isCompleted) {
+                Surface(
+                    color = colorResource(R.color.baby_pink),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text(
+                        "Done",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = Color.White,
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
+                    )
+                }
+            } else {
+                Button(
+                    onClick = onMarkComplete,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = colorResource(R.color.baby_blue)
+                    ),
+                    modifier = Modifier.height(32.dp),
+                    contentPadding = PaddingValues(horizontal = 12.dp)
+                ) {
+                    Text("Mark Done", fontSize = 12.sp)
+                }
+            }
+        }
+
+        // Expandable details
+        if (showDetails) {
+            Spacer(modifier = Modifier.height(8.dp))
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color(0xFFF5F5F5), RoundedCornerShape(8.dp))
+                    .padding(12.dp)
+            ) {
+                vaccine.location?.let {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("📍 ", fontSize = 14.sp)
+                        Text(
+                            "Location: $it",
+                            fontSize = 13.sp,
+                            color = Color.DarkGray
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(4.dp))
+                }
+
+                if (vaccine.isCompleted && vaccine.completedDate != null) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("✅ ", fontSize = 14.sp)
+                        Text(
+                            "Completed: ${vaccine.completedDate.format(DateTimeFormatter.ofPattern("MMMM d, yyyy"))}",
+                            fontSize = 13.sp,
+                            color = Color.DarkGray
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(4.dp))
+                }
+
+                if (!vaccine.notes.isNullOrEmpty()) {
+                    Row(verticalAlignment = Alignment.Top) {
+                        Text("📝 ", fontSize = 14.sp)
+                        Text(
+                            "Notes: ${vaccine.notes}",
+                            fontSize = 13.sp,
+                            color = Color.DarkGray
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    Divider(modifier = Modifier.padding(vertical = 4.dp))
+}
+
 @Composable
 fun Vaccine(onBackClick: () -> Unit = {}) {
     val auth = Firebase.auth
@@ -131,38 +246,38 @@ fun Vaccine(onBackClick: () -> Unit = {}) {
                     .fillMaxWidth()
                     .height(60.dp),
             ) {
-                Box(
-
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
+            // Top Bar with Back Button and Title
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                IconButton(
+                    onClick = onBackClick,
+                    modifier = Modifier.align(Alignment.CenterStart)
                 ) {
-                    IconButton(
-                        onClick = onBackClick,
-                        modifier = Modifier.align(Alignment.CenterStart)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.ArrowBack,
-                            contentDescription = "Back",
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                    Text(
-                        text = "Vaccine Tracker",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 22.sp,
-                        modifier = Modifier.align(Alignment.Center)
+                    Icon(
+                        imageVector = Icons.Filled.ArrowBack,
+                        contentDescription = "Back",
+                        tint = MaterialTheme.colorScheme.primary
                     )
                 }
+                Text(
+                    text = "Vaccine Tracker",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 22.sp,
+                    modifier = Modifier.align(Alignment.Center)
+                )
             }
-
-            Spacer(modifier = Modifier.height(24.dp))
+        }
+            Spacer(modifier = Modifier.height(15.dp))
 
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(horizontal = 16.dp)
+                    .verticalScroll(rememberScrollState())
             ) {
                 // Child Selector Dropdown
                 Card(
@@ -193,7 +308,7 @@ fun Vaccine(onBackClick: () -> Unit = {}) {
                         Icon(
                             Icons.Default.ArrowDropDown,
                             contentDescription = "Select child",
-                            tint = Color(0xFFFEA3C9)
+                            tint = colorResource(R.color.royal_blue)
                         )
                     }
                 }
@@ -322,7 +437,7 @@ fun Vaccine(onBackClick: () -> Unit = {}) {
                                 Icon(
                                     Icons.Default.Add,
                                     contentDescription = "Add vaccine",
-                                    tint = Color(0xFFFEA3C9)
+                                    tint = colorResource(R.color.baby_pink)
                                 )
                             }
                         }
@@ -338,28 +453,19 @@ fun Vaccine(onBackClick: () -> Unit = {}) {
                             )
                         } else {
                             childVaccines.sortedBy { it.scheduledDate }.forEach { vaccine ->
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(vertical = 4.dp),
-                                    horizontalArrangement = Arrangement.SpaceBetween
-                                ) {
-                                    Column(modifier = Modifier.weight(1f)) {
-                                        Text(
-                                            vaccine.name,
-                                            fontSize = 14.sp,
-                                            fontWeight = FontWeight.Medium
-                                        )
+                                VaccineListItem(
+                                    vaccine = vaccine,
+                                    onMarkComplete = {
+                                        vaccineRecords = vaccineRecords.map {
+                                            if (it.id == vaccine.id) {
+                                                it.copy(
+                                                    isCompleted = true,
+                                                    completedDate = LocalDate.now()
+                                                )
+                                            } else it
+                                        }
                                     }
-                                    Text(
-                                        vaccine.scheduledDate.format(
-                                            DateTimeFormatter.ofPattern("MMMM d, yyyy")
-                                        ),
-                                        fontSize = 14.sp,
-                                        color = Color.Gray
-                                    )
-                                }
-                                Divider(modifier = Modifier.padding(vertical = 4.dp))
+                                )
                             }
                         }
                     }
@@ -371,13 +477,15 @@ fun Vaccine(onBackClick: () -> Unit = {}) {
         if (showAddDialog) {
             AddVaccineDialog(
                 onDismiss = { showAddDialog = false },
-                onAdd = { name, date ->
+                onAdd = { name, date, location, notes ->
                     // Add new vaccine record
                     val newVaccine = VaccineRecord(
                         id = vaccineRecords.maxOfOrNull { it.id }?.plus(1) ?: 1,
                         childId = selectedChild?.id ?: "",
                         name = name,
-                        scheduledDate = date
+                        scheduledDate = date,
+                        location = location,
+                        notes = notes
                     )
                     vaccineRecords = vaccineRecords + newVaccine
                     showAddDialog = false
@@ -391,35 +499,79 @@ fun Vaccine(onBackClick: () -> Unit = {}) {
 @Composable
 fun AddVaccineDialog(
     onDismiss: () -> Unit,
-    onAdd: (String, LocalDate) -> Unit
+    onAdd: (String, LocalDate, String, String) -> Unit
 ) {
     var vaccineName by remember { mutableStateOf("") }
     var selectedDate by remember { mutableStateOf(LocalDate.now().plusDays(7)) }
+    var location by remember { mutableStateOf("") }
+    var notes by remember { mutableStateOf("") }
     var showDatePicker by remember { mutableStateOf(false) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Add Vaccine Schedule") },
+        title = {
+            Text(
+                "Add Vaccine Schedule",
+                fontWeight = FontWeight.Bold,
+                fontSize = 20.sp
+            )
+        },
         text = {
-            Column {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp)
+            ) {
+                // Vaccine Name
                 OutlinedTextField(
                     value = vaccineName,
                     onValueChange = { vaccineName = it },
-                    label = { Text("Vaccine Name") },
-                    modifier = Modifier.fillMaxWidth()
+                    label = { Text("Vaccine Name *") },
+                    placeholder = { Text("e.g., BCG, Polio") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
                 OutlinedButton(
                     onClick = { showDatePicker = true },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = colorResource(R.color.strong_pink)
+                    )
                 ) {
                     Text("Date: ${selectedDate.format(DateTimeFormatter.ofPattern("MMMM d, yyyy"))}")
                 }
 
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Location
+                OutlinedTextField(
+                    value = location,
+                    onValueChange = { location = it },
+                    label = { Text("Location") },
+                    placeholder = { Text("e.g., Nairobi Hospital") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Notes
+                OutlinedTextField(
+                    value = notes,
+                    onValueChange = { notes = it },
+                    label = { Text("Notes ") },
+                    placeholder = { Text("Any additional information...") },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(80.dp),
+                    maxLines = 3
+                )
+
                 if (showDatePicker) {
-                    // Simple date picker (you can use DatePicker for more advanced UI)
+                    Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         "Use device calendar or enter date manually",
                         fontSize = 12.sp,
@@ -431,17 +583,30 @@ fun AddVaccineDialog(
         },
         confirmButton = {
             Button(
-                onClick = { onAdd(vaccineName, selectedDate) },
+                onClick = {
+                    onAdd(
+                        vaccineName,
+                        selectedDate,
+                        location.ifEmpty { "Not specified" },
+                        notes.ifEmpty { "" }
+                    )
+                },
                 enabled = vaccineName.isNotBlank(),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFFEA3C9)
+                    containerColor = colorResource(R.color.soft_blue),
+                    disabledContainerColor = Color.LightGray
                 )
             ) {
-                Text("Add")
+                Text("Add Vaccine", fontWeight = FontWeight.Bold)
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
+            TextButton(
+                onClick = onDismiss,
+                colors = ButtonDefaults.textButtonColors(
+                    contentColor = Color.Gray
+                )
+            ) {
                 Text("Cancel")
             }
         }
@@ -454,19 +619,59 @@ fun SimpleCalendarView(
     onVaccineClick: (LocalDate, String) -> Unit
 ) {
     val today = LocalDate.now()
-    val currentMonth = YearMonth.now()
+    var currentMonth by remember { mutableStateOf(YearMonth.now()) }
     val firstDayOfMonth = currentMonth.atDay(1)
     val daysInMonth = currentMonth.lengthOfMonth()
     val firstDayOfWeek = firstDayOfMonth.dayOfWeek.value % 7
 
     Column {
-        Text(
-            text = currentMonth.month.getDisplayName(TextStyle.FULL, Locale.getDefault()) +
-                    " " + currentMonth.year,
-            fontSize = 18.sp,
-            fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
+        // Month navigation header
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(
+                onClick = { currentMonth = currentMonth.minusMonths(1) }
+            ) {
+                Text("◀", fontSize = 20.sp, color = colorResource(R.color.strong_pink))
+            }
+
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = currentMonth.month.getDisplayName(TextStyle.FULL, Locale.getDefault()),
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = currentMonth.year.toString(),
+                    fontSize = 14.sp,
+                    color = Color.Gray
+                )
+            }
+
+            IconButton(
+                onClick = { currentMonth = currentMonth.plusMonths(1) }
+            ) {
+                Text("▶", fontSize = 20.sp, color = colorResource(R.color.soft_blue))
+            }
+        }
+
+        // "Today" button to jump back to current month
+        if (currentMonth != YearMonth.now()) {
+            TextButton(
+                onClick = { currentMonth = YearMonth.now() },
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            ) {
+                Text(
+                    "Go to Today",
+                    fontSize = 12.sp,
+                    color = Color(0xFFFEA3C9)
+                )
+            }
+        }
 
         Row(
             modifier = Modifier.fillMaxWidth(),
