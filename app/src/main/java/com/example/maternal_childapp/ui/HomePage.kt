@@ -37,7 +37,10 @@ import com.example.maternal_childapp.R
 
 
 @Composable
-fun HomePage(onAddClick: () -> Unit){
+fun HomePage(
+    onAddClick: () -> Unit,
+    onSettingsClick: () -> Unit
+){
     Box(
         Modifier.fillMaxSize()){
         Image(
@@ -72,7 +75,7 @@ fun HomePage(onAddClick: () -> Unit){
                     fontWeight = FontWeight.Bold,
                     fontSize = 22.sp
                 )
-                IconButton(onClick = { /* settings */ }) {
+                IconButton(onClick = { onSettingsClick() }) {
                     Icon(
                         imageVector = Icons.Filled.Settings,
                         contentDescription = "Settings",
@@ -88,9 +91,9 @@ fun HomePage(onAddClick: () -> Unit){
             text = "Upcoming",
             fontWeight = FontWeight.Bold,
             fontSize = 22.sp,
-            modifier = Modifier.padding(10.dp)
+            modifier = Modifier.padding(10.dp, 0.dp)
         )
-        Spacer(modifier = Modifier.height(5.dp))
+        //Spacer(modifier = Modifier.height(5.dp))
         Card(
             elevation = CardDefaults.cardElevation(4.dp),
             shape = RoundedCornerShape(15.dp),
@@ -113,16 +116,16 @@ fun HomePage(onAddClick: () -> Unit){
                 }
             }
         }
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(20.dp))
 
         // Quick Actions
         Text(
             text = "Quick Actions",
             fontWeight = FontWeight.Bold,
             fontSize = 22.sp,
-            modifier = Modifier.padding(10.dp)
+            modifier = Modifier.padding(10.dp,0.dp)
         )
-        Spacer(modifier = Modifier.height(5.dp))
+        //Spacer(modifier = Modifier.height(5.dp))
         Row(
             horizontalArrangement = Arrangement.SpaceBetween,
             modifier = Modifier.fillMaxWidth()
@@ -138,17 +141,22 @@ fun HomePage(onAddClick: () -> Unit){
             Spacer(modifier = Modifier.width(18.dp))
             Button(
                 onClick = { /* Ask a Doctor */ },
-                colors = ButtonDefaults.buttonColors(containerColor = colorResource(id = R.color.soft_blue)),
+                colors = ButtonDefaults.buttonColors(containerColor = colorResource(id = R.color.baby_blue)),
                 shape = RoundedCornerShape(10.dp),
                 modifier = Modifier.weight(1f).padding(10.dp)
             ) {
                 Text("Ask a Doctor", color = colorResource(R.color.black))
             }
         }
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(20.dp))
 
         // Tips Section
-        Text(text = "Tips for You", fontWeight = FontWeight.Bold, fontSize = 22.sp, modifier = Modifier.padding(10.dp))
+        Text(
+            text = "Tips for You",
+            fontWeight = FontWeight.Bold,
+            fontSize = 22.sp,
+            modifier = Modifier.padding(10.dp,0.dp)
+        )
         Spacer(modifier = Modifier.height(8.dp))
         Card(
             shape = RoundedCornerShape(15.dp),
@@ -212,5 +220,5 @@ fun HomePage(onAddClick: () -> Unit){
 @Preview(showBackground = true)
 @Composable
 fun HomePagePreview() {
-    HomePage(onAddClick = {})
+    HomePage(onAddClick = {}, onSettingsClick = {})
 }

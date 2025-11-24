@@ -20,6 +20,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.maternal_childapp.R
+import androidx.compose.ui.text.style.TextAlign
 
 @Composable
 fun Track(
@@ -68,20 +69,22 @@ fun Track(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            Text(
-                text = "Baby",
-                fontWeight = FontWeight.Bold,
-                fontSize = 22.sp,
-                modifier = Modifier.padding(10.dp)
-            )
+            Box(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = "Log your child's progress",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 22.sp,
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            }
 
             Spacer(modifier = Modifier.height(8.dp))
 
             Card(
-                shape = RoundedCornerShape(0.dp),
+                shape = RoundedCornerShape(10.dp),
                 colors = CardDefaults.cardColors(containerColor = Color.White),
                 elevation = CardDefaults.cardElevation(4.dp),
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth().padding(10.dp)
             ) {
                 Row(
                     modifier = Modifier
@@ -116,14 +119,11 @@ fun Track(
                     }
                 }
             }
-
-            Spacer(modifier = Modifier.height(20.dp))
-
             Card(
-                shape = RoundedCornerShape(0.dp),
+                shape = RoundedCornerShape(10.dp),
                 colors = CardDefaults.cardColors(containerColor = Color.White),
                 elevation = CardDefaults.cardElevation(4.dp),
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth().padding(10.dp)
             ) {
                 Row(
                     modifier = Modifier

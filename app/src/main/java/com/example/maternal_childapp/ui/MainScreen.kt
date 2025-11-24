@@ -115,7 +115,8 @@ fun BottomBarScreen(rootNavController: NavHostController) {
 
             composable("home") {
                 HomePage(
-                    onAddClick = { bottomNavController.navigate("addChild") }
+                    onAddClick = { bottomNavController.navigate("addChild")},
+                    onSettingsClick = {bottomNavController.navigate("settings")}
                 )
             }
 
