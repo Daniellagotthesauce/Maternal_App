@@ -166,7 +166,7 @@ fun VaccineListItem(
         }
     }
 
-    Divider(modifier = Modifier.padding(vertical = 4.dp))
+    HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
 }
 
 @Composable
@@ -208,7 +208,7 @@ fun Vaccine(onBackClick: () -> Unit = {}) {
         }
     }
 
-    // Sample vaccine records (you'll load this from database based on selected child)
+    // Sample vaccine records
     var vaccineRecords by remember {
         mutableStateOf(
             listOf(
@@ -226,9 +226,7 @@ fun Vaccine(onBackClick: () -> Unit = {}) {
     val vaccineDays = childVaccines.associate { it.scheduledDate to it.name }
     var selectedVaccine by remember { mutableStateOf<String?>(null) }
 
-    Surface(
-        modifier = Modifier.fillMaxSize()
-    ) {
+    Box(modifier = Modifier.fillMaxSize()) {
         // Background Image
         Image(
             painter = painterResource(id = R.drawable.background2),
@@ -240,44 +238,42 @@ fun Vaccine(onBackClick: () -> Unit = {}) {
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
+            // Top Bar
             Surface(
                 color = Color.White,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(60.dp),
+                modifier = Modifier.fillMaxWidth()
             ) {
-            // Top Bar with Back Button and Title
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-            ) {
-                IconButton(
-                    onClick = onBackClick,
-                    modifier = Modifier.align(Alignment.CenterStart)
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
                 ) {
-                    Icon(
-                        imageVector = Icons.Filled.ArrowBack,
-                        contentDescription = "Back",
-                        tint = MaterialTheme.colorScheme.primary
+                    IconButton(
+                        onClick = onBackClick,
+                        modifier = Modifier.align(Alignment.CenterStart)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.ArrowBack,
+                            contentDescription = "Back",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                    Text(
+                        text = "Vaccine Tracker",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 22.sp,
+                        modifier = Modifier.align(Alignment.Center)
                     )
                 }
-                Text(
-                    text = "Vaccine Tracker",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 22.sp,
-                    modifier = Modifier.align(Alignment.Center)
-                )
             }
-        }
-            Spacer(modifier = Modifier.height(15.dp))
 
+            // Scrollable Content
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 16.dp)
                     .verticalScroll(rememberScrollState())
+                    .padding(16.dp)
             ) {
                 // Child Selector Dropdown
                 Card(
@@ -341,14 +337,20 @@ fun Vaccine(onBackClick: () -> Unit = {}) {
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // Calendar
-                SimpleCalendarView(
-                    vaccineDays = vaccineDays,
-                    onVaccineClick = { date, vaccine ->
-                        selectedVaccine = "${date.format(DateTimeFormatter.ofPattern("MMMM d, yyyy"))}: $vaccine"
-                    }
-                )
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    SimpleCalendarView(
+                        vaccineDays = vaccineDays,
+                        onVaccineClick = { date, vaccine ->
+                            selectedVaccine = "${date.format(DateTimeFormatter.ofPattern("MMMM d, yyyy"))}: $vaccine"
+                        },
+                        modifier = Modifier.padding(16.dp)
+                    )
+                }
 
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
                 // Legend
                 Card(
@@ -387,10 +389,9 @@ fun Vaccine(onBackClick: () -> Unit = {}) {
                     }
                 }
 
-                Spacer(modifier = Modifier.height(12.dp))
-
                 // Selected Vaccine Info
                 selectedVaccine?.let { message ->
+                    Spacer(modifier = Modifier.height(12.dp))
                     Card(
                         colors = CardDefaults.cardColors(containerColor = colorResource(R.color.soft_blue)),
                         modifier = Modifier.fillMaxWidth()
@@ -470,6 +471,8 @@ fun Vaccine(onBackClick: () -> Unit = {}) {
                         }
                     }
                 }
+
+                Spacer(modifier = Modifier.height(16.dp))
             }
         }
 
@@ -478,7 +481,6 @@ fun Vaccine(onBackClick: () -> Unit = {}) {
             AddVaccineDialog(
                 onDismiss = { showAddDialog = false },
                 onAdd = { name, date, location, notes ->
-                    // Add new vaccine record
                     val newVaccine = VaccineRecord(
                         id = vaccineRecords.maxOfOrNull { it.id }?.plus(1) ?: 1,
                         childId = selectedChild?.id ?: "",
@@ -505,7 +507,6 @@ fun AddVaccineDialog(
     var selectedDate by remember { mutableStateOf(LocalDate.now().plusDays(7)) }
     var location by remember { mutableStateOf("") }
     var notes by remember { mutableStateOf("") }
-    var showDatePicker by remember { mutableStateOf(false) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -522,7 +523,6 @@ fun AddVaccineDialog(
                     .fillMaxWidth()
                     .padding(vertical = 8.dp)
             ) {
-                // Vaccine Name
                 OutlinedTextField(
                     value = vaccineName,
                     onValueChange = { vaccineName = it },
@@ -534,19 +534,16 @@ fun AddVaccineDialog(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                OutlinedButton(
-                    onClick = { showDatePicker = true },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = colorResource(R.color.strong_pink)
-                    )
-                ) {
-                    Text("Date: ${selectedDate.format(DateTimeFormatter.ofPattern("MMMM d, yyyy"))}")
-                }
+                OutlinedTextField(
+                    value = selectedDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
+                    onValueChange = { },
+                    label = { Text("Date") },
+                    readOnly = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Location
                 OutlinedTextField(
                     value = location,
                     onValueChange = { location = it },
@@ -558,27 +555,16 @@ fun AddVaccineDialog(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Notes
                 OutlinedTextField(
                     value = notes,
                     onValueChange = { notes = it },
-                    label = { Text("Notes ") },
+                    label = { Text("Notes") },
                     placeholder = { Text("Any additional information...") },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(80.dp),
                     maxLines = 3
                 )
-
-                if (showDatePicker) {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        "Use device calendar or enter date manually",
-                        fontSize = 12.sp,
-                        color = Color.Gray,
-                        modifier = Modifier.padding(top = 8.dp)
-                    )
-                }
             }
         },
         confirmButton = {
@@ -593,20 +579,14 @@ fun AddVaccineDialog(
                 },
                 enabled = vaccineName.isNotBlank(),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = colorResource(R.color.soft_blue),
-                    disabledContainerColor = Color.LightGray
+                    containerColor = colorResource(R.color.soft_blue)
                 )
             ) {
                 Text("Add Vaccine", fontWeight = FontWeight.Bold)
             }
         },
         dismissButton = {
-            TextButton(
-                onClick = onDismiss,
-                colors = ButtonDefaults.textButtonColors(
-                    contentColor = Color.Gray
-                )
-            ) {
+            TextButton(onClick = onDismiss) {
                 Text("Cancel")
             }
         }
@@ -616,7 +596,8 @@ fun AddVaccineDialog(
 @Composable
 fun SimpleCalendarView(
     vaccineDays: Map<LocalDate, String>,
-    onVaccineClick: (LocalDate, String) -> Unit
+    onVaccineClick: (LocalDate, String) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val today = LocalDate.now()
     var currentMonth by remember { mutableStateOf(YearMonth.now()) }
@@ -624,8 +605,8 @@ fun SimpleCalendarView(
     val daysInMonth = currentMonth.lengthOfMonth()
     val firstDayOfWeek = firstDayOfMonth.dayOfWeek.value % 7
 
-    Column {
-        // Month navigation header
+    Column(modifier = modifier) {
+        // Month navigation
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -659,20 +640,7 @@ fun SimpleCalendarView(
             }
         }
 
-        // "Today" button to jump back to current month
-        if (currentMonth != YearMonth.now()) {
-            TextButton(
-                onClick = { currentMonth = YearMonth.now() },
-                modifier = Modifier.align(Alignment.CenterHorizontally)
-            ) {
-                Text(
-                    "Go to Today",
-                    fontSize = 12.sp,
-                    color = Color(0xFFFEA3C9)
-                )
-            }
-        }
-
+        // Days of week
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
@@ -691,6 +659,7 @@ fun SimpleCalendarView(
 
         Spacer(modifier = Modifier.height(8.dp))
 
+        // Calendar grid
         var dayCounter = 1
         for (week in 0..5) {
             if (dayCounter > daysInMonth) break
@@ -701,7 +670,7 @@ fun SimpleCalendarView(
             ) {
                 for (dayOfWeek in 0..6) {
                     if (week == 0 && dayOfWeek < firstDayOfWeek) {
-                        Box(modifier = Modifier.weight(1f).aspectRatio(1f))
+                        Spacer(modifier = Modifier.weight(1f).aspectRatio(1f))
                     } else if (dayCounter <= daysInMonth) {
                         val currentDate = currentMonth.atDay(dayCounter)
                         val isToday = currentDate == today
@@ -711,7 +680,7 @@ fun SimpleCalendarView(
                             modifier = Modifier
                                 .weight(1f)
                                 .aspectRatio(1f)
-                                .padding(4.dp)
+                                .padding(2.dp)
                                 .background(
                                     when {
                                         isToday -> colorResource(R.color.strong_pink)
@@ -720,11 +689,9 @@ fun SimpleCalendarView(
                                     },
                                     CircleShape
                                 )
-                                .clickable {
-                                    if (isVaccineDay) {
-                                        vaccineDays[currentDate]?.let { vaccine ->
-                                            onVaccineClick(currentDate, vaccine)
-                                        }
+                                .clickable(enabled = isVaccineDay) {
+                                    vaccineDays[currentDate]?.let { vaccine ->
+                                        onVaccineClick(currentDate, vaccine)
                                     }
                                 },
                             contentAlignment = Alignment.Center
@@ -741,7 +708,7 @@ fun SimpleCalendarView(
                         }
                         dayCounter++
                     } else {
-                        Box(modifier = Modifier.weight(1f).aspectRatio(1f))
+                        Spacer(modifier = Modifier.weight(1f).aspectRatio(1f))
                     }
                 }
             }
@@ -752,5 +719,118 @@ fun SimpleCalendarView(
 @Preview(showBackground = true)
 @Composable
 fun VaccinePreview() {
-    Vaccine()
+    // Preview with mock data - Firebase isn't available in previews
+    val mockVaccineRecords = listOf(
+        VaccineRecord(1, "mock", "BCG", LocalDate.now().plusDays(5)),
+        VaccineRecord(2, "mock", "Polio (OPV 0)", LocalDate.now().plusDays(5)),
+        VaccineRecord(3, "mock", "Hepatitis B", LocalDate.now().minusDays(3), isCompleted = true, completedDate = LocalDate.now().minusDays(3)),
+        VaccineRecord(4, "mock", "DTP 1", LocalDate.now().plusDays(42)),
+        VaccineRecord(5, "mock", "Polio 1", LocalDate.now().plusDays(42))
+    )
+
+    val vaccineDays = mockVaccineRecords.associate { it.scheduledDate to it.name }
+    var selectedVaccine by remember { mutableStateOf<String?>(null) }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        Image(
+            painter = painterResource(id = R.drawable.background2),
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop
+        )
+
+        Column(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            Surface(
+                color = Color.White,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                ) {
+                    Text(
+                        text = "Vaccine Tracker",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 22.sp,
+                        modifier = Modifier.align(Alignment.Center)
+                    )
+                }
+            }
+
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(16.dp)
+            ) {
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text(
+                                text = "Selected Child",
+                                fontSize = 12.sp,
+                                color = Color.Gray
+                            )
+                            Text(
+                                text = "Preview Child",
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    SimpleCalendarView(
+                        vaccineDays = vaccineDays,
+                        onVaccineClick = { date, vaccine ->
+                            selectedVaccine = "${date.format(DateTimeFormatter.ofPattern("MMMM d, yyyy"))}: $vaccine"
+                        },
+                        modifier = Modifier.padding(16.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            text = "Upcoming Vaccines",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        mockVaccineRecords.sortedBy { it.scheduledDate }.forEach { vaccine ->
+                            VaccineListItem(
+                                vaccine = vaccine,
+                                onMarkComplete = { }
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
 }

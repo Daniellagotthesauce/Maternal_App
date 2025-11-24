@@ -37,7 +37,7 @@ import com.example.maternal_childapp.R
 
 
 @Composable
-fun HomePage(){
+fun HomePage(onAddClick: () -> Unit){
     Box(
         Modifier.fillMaxSize()){
         Image(
@@ -128,7 +128,7 @@ fun HomePage(){
             modifier = Modifier.fillMaxWidth()
         ) {
             Button(
-                onClick = {},
+                onClick = { onAddClick() },
                 colors = ButtonDefaults.buttonColors(containerColor = colorResource(id = R.color.strong_pink)),
                 shape = RoundedCornerShape(10.dp),
                 modifier = Modifier.weight(1f).padding(10.dp)
@@ -212,5 +212,5 @@ fun HomePage(){
 @Preview(showBackground = true)
 @Composable
 fun HomePagePreview() {
-    HomePage()
+    HomePage(onAddClick = {})
 }

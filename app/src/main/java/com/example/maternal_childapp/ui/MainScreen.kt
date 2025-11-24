@@ -60,13 +60,17 @@ fun MainScreen(navController: NavHostController) {
                     onContinueClick = { navController.navigate("home") }
                 )
             }
-            composable("home") { BottomBarScreen() }
+            composable("home") {
+                HomePage(onAddClick = { navController.navigate("addChild") })
+            }
             composable("track") {
                 Track(
                     onVaccineClick = { navController.navigate("vaccine") }
                 )
             }
+
             composable("vaccine") { BottomBarScreen() }
+            composable("addChild") { BottomBarScreen() }
         }
     }
 
@@ -115,7 +119,11 @@ fun BottomBarScreen() {
             startDestination = "home",
             modifier = Modifier.padding(innerPadding)
         ) {
-            composable("home") { HomePage() }
+            composable("home") {
+                HomePage(onAddClick = {
+                    bottomNavController.navigate("addChild")
+                })
+            }
             composable("profile") { ChangeProfile() }
             composable("settings") { Settings() }
             composable("track") {
