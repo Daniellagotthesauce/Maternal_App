@@ -47,7 +47,6 @@ class GrowthViewModel : ViewModel() {
         loadChildren()
     }
 
-
     private fun loadChildren() {
         val user = auth.currentUser ?: run {
             uiState = uiState.copy(
@@ -70,12 +69,10 @@ class GrowthViewModel : ViewModel() {
                     ChildOption(id = id, name = name)
                 }
 
-                val uniqueChildren = childOptions.distinctBy { it.name }
-
-                val firstChild = uniqueChildren.firstOrNull()
+                val firstChild = childOptions.firstOrNull()
 
                 uiState = uiState.copy(
-                    children = uniqueChildren,
+                    children = childOptions,
                     selectedChildId = firstChild?.id,
                     childName = firstChild?.name ?: "Your baby",
                     isLoading = true,
@@ -84,6 +81,7 @@ class GrowthViewModel : ViewModel() {
                     latestHeightCm = null,
                     latestWeightKg = null
                 )
+
 
                 firstChild?.id?.let { loadGrowthDataForChild(it) }
             }
@@ -94,6 +92,7 @@ class GrowthViewModel : ViewModel() {
                 )
             }
     }
+
 
     private fun loadGrowthDataForChild(childId: String) {
         val user = auth.currentUser ?: return

@@ -112,11 +112,9 @@ fun saveChild(
 
     val motherId = auth.currentUser?.uid
     if (motherId == null) {
-        Log.e("SAVE_CHILD", "User not logged in")
         onError("User not logged in")
         return
     }
-
 
     val childData = hashMapOf(
         "firstName" to firstName,
@@ -133,49 +131,38 @@ fun saveChild(
         .document(motherId)
         .collection("children")
         .add(childData)
-        .addOnSuccessListener {
-            Log.d("SAVE_CHILD", "Child added successfully")
+        .addOnSuccessListener { childRef ->
+            val childId = childRef.id
+
+            // convert to metric for growth log
+            val weightKg = birthWeight * 0.453592
+            val heightCm = birthLength * 2.54
+
+            val growthData = hashMapOf(
+                "title" to "Birth",
+                "date" to FieldValue.serverTimestamp(),
+                "weightKg" to weightKg,
+                "heightCm" to heightCm,
+                "childId" to childId
+            )
+
             db.collection("users")
                 .document(motherId)
-                .collection("children")
-                .add(childData)
-                .addOnSuccessListener { childRef ->
-
-                    val childId = childRef.id
-
-                    val weightKg = birthWeight * 0.453592
-                    val heightCm = birthLength * 2.54
-
-                    val growthData = hashMapOf(
-                        "title" to "Birth",
-                        "date" to FieldValue.serverTimestamp(),
-                        "weightKg" to weightKg,
-                        "heightCm" to heightCm,
-                        "childId" to childId
-                    )
-
-                    db.collection("users")
-                        .document(motherId)
-                        .collection("growthLogs")
-                        .add(growthData)
-                        .addOnSuccessListener {
-                            onSuccess()
-                        }
-                        .addOnFailureListener { e ->
-                            onError("Child saved but growth log failed: ${e.message}")
-                        }
+                .collection("growthLogs")
+                .add(growthData)
+                .addOnSuccessListener {
+                    onSuccess()
                 }
                 .addOnFailureListener { e ->
-                    onError("Failed to save child: ${e.message}")
+                    onError("Child saved but growth log failed: ${e.message}")
                 }
-
-            onSuccess()
         }
-        .addOnFailureListener { exception ->
-            Log.e("SAVE_CHILD", "Error adding child", exception)
-            onError("Failed to save: ${exception.message}")
+        .addOnFailureListener { e ->
+            onError("Failed to save child: ${e.message}")
         }
 }
+
+
 
 @Composable
 fun ChildForm() {
