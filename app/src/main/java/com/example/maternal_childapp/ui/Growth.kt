@@ -36,6 +36,7 @@ fun GrowthScreenRoute(
         childAgeLabel = state.childAgeLabel,
         latestWeightKg = state.latestWeightKg,
         latestHeightCm = state.latestHeightCm,
+        dateOfBirth = state.dateOfBirth,
         history = state.history,
         children = state.children,
         selectedChildId = state.selectedChildId,
@@ -51,6 +52,7 @@ fun GrowthScreenRoute(
 fun GrowthScreen(
     childName: String,
     childAgeLabel: String,
+    dateOfBirth : String?,
     latestWeightKg: Double?,
     latestHeightCm: Double?,
     history: List<GrowthRecord>,
@@ -105,11 +107,11 @@ fun GrowthScreen(
             ChildSelectorCard(
                 childName = childName,
                 ageLabel = childAgeLabel,
+                dateOfBirth = dateOfBirth,
                 children = children,
                 selectedChildId = selectedChildId,
                 onChildSelected = onChildSelected
             )
-
             Spacer(modifier = Modifier.height(16.dp))
 
             LatestMeasurementsCard(
@@ -139,6 +141,7 @@ fun GrowthScreen(
 fun ChildSelectorCard(
     childName: String,
     ageLabel: String,
+    dateOfBirth: String?,
     children: List<ChildOption>,
     selectedChildId: String?,
     onChildSelected: (String) -> Unit

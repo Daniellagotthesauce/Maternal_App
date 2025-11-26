@@ -8,6 +8,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.Locale
 
 data class GrowthRecord(
@@ -19,13 +20,15 @@ data class GrowthRecord(
 
 data class ChildOption(
     val id: String,
-    val name: String
+    val name: String,
+    val dob: String? = null
 )
 
 data class GrowthUiState(
     val isLoading: Boolean = true,
     val error: String? = null,
     val childName: String = "Your baby",
+    val dateOfBirth: String? = null,
     val childAgeLabel: String = "",
     val latestWeightKg: Double? = null,
     val latestHeightCm: Double? = null,
@@ -66,7 +69,10 @@ class GrowthViewModel : ViewModel() {
                     val first = doc.getString("firstName") ?: ""
                     val last = doc.getString("lastName") ?: ""
                     val name = "$first $last".trim().ifBlank { "Baby" }
-                    ChildOption(id = id, name = name)
+                    val dob = doc.getString("dob")
+                    val dobFormatted = doc.getString("dob")
+
+                    ChildOption(id = id, name = name, dob = dobFormatted)
                 }
 
                 val firstChild = childOptions.firstOrNull()
@@ -79,7 +85,8 @@ class GrowthViewModel : ViewModel() {
                     error = null,
                     history = emptyList(),
                     latestHeightCm = null,
-                    latestWeightKg = null
+                    latestWeightKg = null,
+                    dateOfBirth = firstChild?.dob
                 )
 
 
@@ -104,6 +111,8 @@ class GrowthViewModel : ViewModel() {
             latestHeightCm = null,
             latestWeightKg = null
         )
+
+        val childDob = uiState.children.find { it.id == childId }?.dob ?: "Not set"
 
         db.collection("users")
             .document(user.uid)
@@ -138,7 +147,7 @@ class GrowthViewModel : ViewModel() {
 
                     GrowthRecord(
                         title = doc.getString("title") ?: "Checkup",
-                        date = dateFormatter.format(timestamp.toDate()),
+                        date = childDob,
                         weightKg = weight,
                         heightCm = height
                     )
@@ -162,9 +171,11 @@ class GrowthViewModel : ViewModel() {
 
         uiState = uiState.copy(
             selectedChildId = childId,
-            childName = name
+            childName = name,
+            dateOfBirth = child?.dob
         )
 
         loadGrowthDataForChild(childId)
     }
 }
+
