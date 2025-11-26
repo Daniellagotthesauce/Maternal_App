@@ -13,6 +13,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Face
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.material3.Surface
@@ -29,14 +30,41 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.ui.text.style.TextAlign
 import com.example.maternal_childapp.R
 
 
 private val IconSize = 24.dp
 private val IconSpacing = 12.dp
+
 @Composable
-fun MorePage(){
+fun MorePageRoute() {
+    val viewModel: ProfileViewModel = viewModel()
+    val state = viewModel.uiState
+
+    MorePage(
+        userName = state.userName,
+        userDob = state.userDob,
+        userEmail = state.userEmail,
+        phone = state.phone,
+        numberOfChildren = state.numberOfChildren,
+        isLoading = state.isLoading,
+        error = state.error,
+        onRefresh = { viewModel.refresh() }
+    )
+}
+@Composable
+fun MorePage(
+    userName: String = "User",
+    userDob: String = "Not set",
+    userEmail: String = "Not set",
+    phone: String = "Not set",
+    numberOfChildren: Int = 0,
+    isLoading: Boolean = false,
+    error: String? = null,
+    onRefresh: () -> Unit = {}
+){
     Box(
         Modifier.fillMaxSize()){
         Image(
@@ -69,7 +97,7 @@ fun MorePage(){
             }
             Spacer(modifier = Modifier.height(12.dp))
             Image(
-                painter = painterResource(id = R.drawable.danie), // replace with actual profile image later
+                painter = painterResource(id = R.drawable.mother),
                 contentDescription = "Profile Photo",
                 modifier = Modifier
                     .size(120.dp)
@@ -79,8 +107,20 @@ fun MorePage(){
 
             Spacer(modifier = Modifier.height(12.dp))
 
+            if (isLoading) {
+                CircularProgressIndicator()
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+
+            if (error != null) {
+                Text(
+                    text = error,
+                    color = Color.Red,
+                    modifier = Modifier.padding(16.dp)
+                )
+            }
             Text(
-                text = "Faith Wangeci",
+                text = userName,
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary
@@ -88,21 +128,33 @@ fun MorePage(){
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            InfoCard("Personal Information",
-                    "Name: Faith Wangeci\nDate of Birth: 1990-05-15",
-                    icon = Icons.Default.Person )
-            InfoCard("Health Information",
-                "Child's Age: 1 year",
+            InfoCard(
+                "Personal Information",
+                    "Name: $userName\nDate of Birth: $userDob",
+                    icon = Icons.Default.Person
+            )
+
+            InfoCard(
+                "Contact Information",
+                "Email: $userEmail\nPhone: $phone",
+                icon = Icons.Default.Phone
+            )
+
+            InfoCard(
+                "Health Information",
+                "Number of Children: $numberOfChildren",
                 icon = Icons.Default.Favorite)
-            InfoCard("Medical History",
-                "Blood Type O+",
-                icon = Icons.Default.Check)
-            InfoCard("Preferences and Settings",
+
+            InfoCard(
+                "Preferences and Settings",
                 "Language: English",
-                icon = Icons.Default.Settings)
-            InfoCard("Support and Resources",
+                icon = Icons.Default.Settings
+            )
+            InfoCard(
+                "Support and Resources",
                 "FAQ'S",
-                icon = Icons.Default.Info)
+                icon = Icons.Default.Info
+            )
 
         }
     }

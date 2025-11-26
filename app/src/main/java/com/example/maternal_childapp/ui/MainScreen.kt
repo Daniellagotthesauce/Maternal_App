@@ -136,7 +136,7 @@ fun BottomBarScreen(rootNavController: NavHostController) {
 
             composable("learn") { Learn() }
             composable("messages") { Messages() }
-            composable("more") { MorePage() }
+            composable("more") { MorePageRoute() }
             composable("vaccine") { Vaccine() }
             composable("addChild") { AddChild() }
         }
