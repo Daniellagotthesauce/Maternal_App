@@ -95,6 +95,7 @@ fun BottomBar(bottomNavController: NavHostController) {
             selected = false,
             onClick = { bottomNavController.navigate("more") }
         )
+
     }
 }
 
@@ -120,12 +121,17 @@ fun BottomBarScreen(rootNavController: NavHostController) {
                 )
             }
 
-            composable("profile") { ChangeProfile() }
-            composable("settings") { Settings(
-                onBack = {
-                    bottomNavController.popBackStack()
-                }
-            ) }
+            composable("changeProfile") {
+                ChangeProfile(
+                    onBack = { bottomNavController.popBackStack() }
+                )
+            }
+            composable("settings") {
+                Settings(
+                    navController = bottomNavController,  // <--- pass bottomNavController
+                    onBack = { bottomNavController.popBackStack() }
+                )
+            }
 
             composable("track") {
                 Track(

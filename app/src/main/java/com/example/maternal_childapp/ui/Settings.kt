@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Icon
@@ -32,6 +33,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.example.maternal_childapp.R
 import androidx.compose.ui.text.style.TextAlign
+import androidx.navigation.NavHostController
 
 
 private val IconSize = 24.dp
@@ -39,6 +41,7 @@ private val IconSpacing = 12.dp
 
 @Composable
 fun Settings(
+    navController: NavHostController,
     onBack: () -> Unit,
 ) {
     Box(
@@ -94,7 +97,8 @@ fun Settings(
                 SettingsInfoCard(
                     title = "Account Details",
                     text = "Manage your personal information",
-                    icon = Icons.Default.Person
+                    icon = Icons.Default.Person,
+                    onClick = { navController.navigate("changeProfile") }
                 )
                 SettingsInfoCard(
                     title = "Password",
@@ -169,11 +173,19 @@ fun Settings(
     fun SettingsInfoCard(
         title: String,
         text: String,
-        icon: ImageVector = Icons.Default.Info
+        icon: ImageVector = Icons.Default.Info,
+        onClick: (() -> Unit)? = null
     ) {
         Card(
             modifier = Modifier
-                .fillMaxWidth(),
+                .fillMaxWidth()
+                .then(
+                if (onClick != null) {
+                    Modifier.clickable { onClick() }  // Add this!
+                } else {
+                    Modifier
+                }
+            ),
             //.padding(vertical = 6.dp),
             shape = RoundedCornerShape(0.dp),
             colors = CardDefaults.cardColors(containerColor = Color(0xFFFFFFFF)),
@@ -239,11 +251,3 @@ fun Settings(
         }
     }
 
-
-@Preview(showBackground = true)
-@Composable
-fun SettingsPreview() {
-    Settings(
-        onBack = { }
-    )
-}

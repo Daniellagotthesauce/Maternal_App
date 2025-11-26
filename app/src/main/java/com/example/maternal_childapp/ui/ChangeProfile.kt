@@ -28,7 +28,10 @@ import androidx.compose.ui.text.style.TextAlign
 
 
 @Composable
-fun ChangeProfile() {
+fun ChangeProfile(
+    onBack: () -> Unit = {}
+
+) {
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -58,7 +61,7 @@ fun ChangeProfile() {
             Spacer(modifier = Modifier.height(12.dp))
 
             Image(
-                painter = painterResource(id = R.drawable.danie),
+                painter = painterResource(id = R.drawable.mother),
                 contentDescription = null,
                 modifier = Modifier
                     .size(120.dp)
@@ -67,7 +70,7 @@ fun ChangeProfile() {
             )
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = "Faith Wangeci",
+                text = "Linchella",
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
             )
