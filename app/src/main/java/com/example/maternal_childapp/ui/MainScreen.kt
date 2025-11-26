@@ -121,7 +121,11 @@ fun BottomBarScreen(rootNavController: NavHostController) {
             }
 
             composable("profile") { ChangeProfile() }
-            composable("settings") { Settings() }
+            composable("settings") { Settings(
+                onBack = {
+                    bottomNavController.popBackStack()
+                }
+            ) }
 
             composable("track") {
                 Track(
@@ -130,12 +134,23 @@ fun BottomBarScreen(rootNavController: NavHostController) {
                     },
                     onVaccineClick = {
                         bottomNavController.navigate("vaccine")
+                    },
+                    onBack = {
+                        bottomNavController.popBackStack()
                     }
                 )
             }
 
-            composable("learn") { Learn() }
-            composable("messages") { Messages() }
+            composable("learn") { Learn(
+                onBack = {
+                    bottomNavController.popBackStack()
+                }
+            ) }
+            composable("messages") { Messages(
+                onBack = {
+                    bottomNavController.popBackStack()
+                }
+            ) }
             composable("more") { MorePageRoute() }
             composable("vaccine") { Vaccine() }
             composable("addChild") { AddChild() }

@@ -26,6 +26,7 @@ import androidx.compose.ui.text.style.TextAlign
 fun Track(
     onGrowthClick: () -> Unit,
     onVaccineClick: () -> Unit,
+    onBack: () -> Unit,
 ) {
     Box(
         Modifier.fillMaxSize()
@@ -47,17 +48,9 @@ fun Track(
                     .height(60.dp),
             ) {
                 Box(modifier = Modifier.fillMaxSize()) {
-                    IconButton(
-                        onClick = { /* Handle back action if needed */ },
-                        modifier = Modifier.align(Alignment.CenterStart)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.ArrowBack,
-                            contentDescription = "Back",
-                            tint = MaterialTheme.colorScheme.primary
-                        )
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
                     }
-
                     Text(
                         text = "Log",
                         fontWeight = FontWeight.Bold,
@@ -65,6 +58,7 @@ fun Track(
                         modifier = Modifier.align(Alignment.Center)
                     )
                 }
+
             }
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -168,6 +162,7 @@ fun Track(
 fun TrackPreview() {
     Track(
         onGrowthClick = {  },
-        onVaccineClick = { }
+        onVaccineClick = { },
+        onBack = { }
     )
 }

@@ -35,7 +35,9 @@ import androidx.compose.runtime.setValue
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Messages() {
+fun Messages(
+    onBack: () -> Unit,
+) {
     Box(
         Modifier.fillMaxSize()
     ) {
@@ -56,15 +58,8 @@ fun Messages() {
                     .height(60.dp),
             ) {
                 Box(modifier = Modifier.fillMaxSize()) {
-                    IconButton(
-                        onClick = { /* Handle back action */ },
-                        modifier = Modifier.align(Alignment.CenterStart)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.ArrowBack,
-                            contentDescription = "Back",
-                            tint = MaterialTheme.colorScheme.primary
-                        )
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
                     }
 
                     Text(
@@ -172,5 +167,5 @@ fun Messages() {
 @Preview(showBackground = true)
 @Composable
 fun MessagesPreview(){
-    Messages()
+    Messages(onBack = {})
 }

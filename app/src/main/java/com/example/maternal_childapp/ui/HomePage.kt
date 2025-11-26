@@ -64,7 +64,7 @@ fun HomePage(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Image(
-                    painter = painterResource(id = R.drawable.img),//replace with profile
+                    painter = painterResource(id = R.drawable.mother),
                     contentDescription = "Profile Picture",
                     modifier = Modifier
                         .size(48.dp)

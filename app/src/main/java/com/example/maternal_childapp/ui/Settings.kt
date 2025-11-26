@@ -10,6 +10,7 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Icon
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
@@ -37,7 +38,9 @@ private val IconSize = 24.dp
 private val IconSpacing = 12.dp
 
 @Composable
-fun Settings() {
+fun Settings(
+    onBack: () -> Unit,
+) {
     Box(
         Modifier.fillMaxSize()
     ) {
@@ -58,15 +61,19 @@ fun Settings() {
             color = Color.White,
             modifier = Modifier.fillMaxWidth().height(60.dp),
         ) {
-
-            Text(
-                text = "Settings",
-                fontSize = 22.sp,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(15.dp)
-            )
+            Box(modifier = Modifier.fillMaxSize()) {
+                IconButton(onClick = onBack) {
+                    Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
+                }
+                Text(
+                    text = "Settings",
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(15.dp).align(Alignment.Center)
+                )
+            }
         }
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -236,5 +243,7 @@ fun Settings() {
 @Preview(showBackground = true)
 @Composable
 fun SettingsPreview() {
-    Settings()
+    Settings(
+        onBack = { }
+    )
 }
