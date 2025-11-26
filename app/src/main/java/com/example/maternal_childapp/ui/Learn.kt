@@ -156,7 +156,7 @@ fun Learn(
                                 )
                             }
                             Image(
-                                painter = painterResource(R.drawable.img),
+                                painter = painterResource(R.drawable.motherchild),
                                 contentDescription = item,
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier

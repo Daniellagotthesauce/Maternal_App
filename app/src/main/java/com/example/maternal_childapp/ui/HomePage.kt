@@ -112,7 +112,7 @@ fun HomePage(
                 Spacer(modifier = Modifier.width(15.dp))
                 Column {
                     Text("Antenatal Checkup", fontWeight = FontWeight.Medium)
-                    Text("28th July 2024", color = colorResource(R.color.baby_pink))
+                    Text("28th November 2025", color = colorResource(R.color.baby_pink))
                 }
             }
         }
@@ -169,15 +169,18 @@ fun HomePage(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Week 24", color = colorResource(R.color.black))
-                    Text("Healthy Eating Habits", fontWeight = FontWeight.Bold)
+                    Text("Every baby is different", fontWeight = FontWeight.Bold)
                     Text(
-                        "Learn about the best foods to support your pregnancy.",
+                        "Don’t compare your baby to others.\n" +
+                                "Some sleep well early\n" +
+                                "Some cry more\n" +
+                                "Some feed more frequently\n" +
+                                "Your baby is not behind, they are unique.",
                         color = colorResource(R.color.black)
                     )
                 }
                 Image(
-                    painter = painterResource(R.drawable.img),
+                    painter = painterResource(R.drawable.baby),
                     contentDescription = "Healthy food",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
@@ -197,15 +200,14 @@ fun HomePage(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Week 24", color = colorResource(R.color.black))
-                    Text("Healthy Eating Habits", fontWeight = FontWeight.Bold)
+                    Text("Take care of yourself", fontWeight = FontWeight.Bold)
                     Text(
-                        "Learn about the best foods to support your pregnancy.",
+                        "A healthy, emotionally balanced mum = a healthy baby.",
                         color = colorResource(R.color.black)
                     )
                 }
                 Image(
-                    painter = painterResource(R.drawable.img),
+                    painter = painterResource(R.drawable.selfcare),
                     contentDescription = "Healthy food",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
