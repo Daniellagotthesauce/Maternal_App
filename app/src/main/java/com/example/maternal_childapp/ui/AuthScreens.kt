@@ -29,6 +29,8 @@ import com.google.firebase.auth.auth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.auth.GoogleAuthProvider
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
@@ -42,12 +44,12 @@ fun LoginScreen(
     onGoogleClick: (() -> Unit)? = null
 ) {
     // Background gradients
-    val vertical = Brush.verticalGradient(
-        listOf(
-            colorResource(R.color.baby_blue),
-            colorResource(R.color.baby_pink)
-        )
-    )
+//    val vertical = Brush.verticalGradient(
+//        listOf(
+//            colorResource(R.color.baby_blue),
+//            colorResource(R.color.baby_pink)
+//        )
+//    )
     val radial = Brush.radialGradient(
         colors = listOf(Color(0x22FF9BB3), Color.Transparent)
     )
@@ -101,10 +103,15 @@ fun LoginScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(vertical)
             .background(radial)
             .windowInsetsPadding(WindowInsets.systemBars)
     ) {
+        Image(
+            painter = painterResource(id = R.drawable.background2),
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop
+        )
         Column(
             modifier = Modifier
                 .fillMaxSize()

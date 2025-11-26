@@ -1,9 +1,11 @@
 package com.example.maternal_childapp.ui
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -11,56 +13,87 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.style.TextAlign
 import com.example.maternal_childapp.R
 import androidx.compose.ui.res.colorResource
-
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
+import com.google.firebase.Firebase
+import com.google.firebase.auth.auth
+import com.google.firebase.firestore.FirebaseFirestore
 @Composable
 fun OnboardingScreen(
     userName: String = "Faith",
     onContinueClick: (() -> Unit)? = null
 ) {
-    // Background gradient
-    val background = Brush.verticalGradient(
-        listOf(
-            colorResource(R.color.baby_pink),
-            colorResource(R.color.baby_blue)
-        )
-    )
+    // Fetch username from Firebase
+    var firebaseUserName by remember { mutableStateOf("") }
+    val auth = Firebase.auth
+    val db = FirebaseFirestore.getInstance()
+
+    LaunchedEffect(Unit) {
+        auth.currentUser?.uid?.let { userId ->
+            db.collection("users")
+                .document(userId)
+                .get()
+                .addOnSuccessListener { document ->
+                    firebaseUserName = document.getString("firstName") ?: "User"
+                }
+                .addOnFailureListener {
+                    firebaseUserName = "User"
+                }
+        }
+    }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(background)
             .windowInsetsPadding(WindowInsets.systemBars)
-    ) {
 
-        // Top bar: Welcome + settings icon
-        Row(
+    ) {
+        Image(
+            painter = painterResource(id = R.drawable.background2),
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop
+        )
+
+        Surface(
+            color = Color.White,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(20.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+                .height(60.dp),
         ) {
-            Text(
-                text = "Welcome $userName 🍼",
-                style = MaterialTheme.typography.titleMedium.copy(
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp
-                ),
-                color = Color.Black
-            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Top bar: Welcome + settings icon
+                Text(
+                    text = "Welcome ${firebaseUserName.ifEmpty { userName }}",
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp
+                    ),
+                    color = Color.Black
+                )
 
-            Icon(
-                imageVector = Icons.Default.Settings,
-                contentDescription = "Settings",
-                tint = Color.Black
-            )
+                Icon(
+                    imageVector = Icons.Default.Settings,
+                    contentDescription = "Settings",
+                    tint = Color.Black
+                )
+            }
+
         }
+
 
         //  Form section
         Column(
@@ -134,7 +167,7 @@ fun OnboardingScreen(
                 shape = shape
             )
 
-            Spacer(Modifier.height(300.dp))
+            Spacer(Modifier.height(250.dp))
 
             // Continue button
             Button(
@@ -154,4 +187,9 @@ fun OnboardingScreen(
             }
         }
     }
+}
+@Preview(showBackground = true)
+@Composable
+fun onBooardPreview() {
+    OnboardingScreen()
 }
