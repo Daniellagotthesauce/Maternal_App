@@ -38,6 +38,12 @@ import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.util.Locale
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material.icons.filled.DateRange
+import java.time.Instant
+import java.time.ZoneId
 
 data class Child(
     val id: String = "",
@@ -68,7 +74,7 @@ fun saveVaccine(
     userId: String,
     childId: String,
     name: String,
-    scheduledDate: LocalDate,
+    scheduledDate: String,
     location: String,
     notes: String,
     onSuccess: () -> Unit,
@@ -685,12 +691,13 @@ fun Vaccine(onBackClick: () -> Unit = {}) {
 @Composable
 fun AddVaccineDialog(
     onDismiss: () -> Unit,
-    onAdd: (String, LocalDate, String, String) -> Unit
+    onAdd: (String, String, String, String) -> Unit
 ) {
     var vaccineName by remember { mutableStateOf("") }
     var selectedDate by remember { mutableStateOf(LocalDate.now().plusDays(7)) }
     var location by remember { mutableStateOf("") }
     var notes by remember { mutableStateOf("") }
+    var showDatePicker by remember { mutableStateOf(false) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -715,19 +722,37 @@ fun AddVaccineDialog(
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
                 )
-
                 Spacer(modifier = Modifier.height(12.dp))
 
-                OutlinedTextField(
-                    value = selectedDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
-                    onValueChange = { },
-                    label = { Text("Date") },
-                    readOnly = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { showDatePicker = true }
+                ) {
+                    OutlinedTextField(
+                        value = selectedDate.format(DateTimeFormatter.ofPattern("MMMM dd, yyyy")),
+                        onValueChange = { },
+                        label = { Text("Scheduled Date") },
+                        readOnly = true,
+                        enabled = false,
+                        modifier = Modifier.fillMaxWidth(),
+                        trailingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.DateRange,
+                                contentDescription = "Select date",
+                                tint = colorResource(R.color.soft_blue)
+                            )
+                        },
+                        colors = OutlinedTextFieldDefaults.colors(
+                            disabledTextColor = Color.Black,
+                            disabledBorderColor = Color.Gray,
+                            disabledLabelColor = Color.Gray,
+                            disabledTrailingIconColor = colorResource(R.color.soft_blue)
+                        )
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(12.dp))
-
                 OutlinedTextField(
                     value = location,
                     onValueChange = { location = it },
@@ -736,9 +761,7 @@ fun AddVaccineDialog(
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
                 )
-
                 Spacer(modifier = Modifier.height(12.dp))
-
                 OutlinedTextField(
                     value = notes,
                     onValueChange = { notes = it },
@@ -756,7 +779,7 @@ fun AddVaccineDialog(
                 onClick = {
                     onAdd(
                         vaccineName,
-                        selectedDate,
+                        selectedDate.toString(),
                         location.ifEmpty { "Not specified" },
                         notes.ifEmpty { "" }
                     )
@@ -775,8 +798,42 @@ fun AddVaccineDialog(
             }
         }
     )
-}
 
+    // Date Picker Dialog
+    if (showDatePicker) {
+        val datePickerState = rememberDatePickerState(
+            initialSelectedDateMillis = selectedDate
+                .atStartOfDay(ZoneId.systemDefault())
+                .toInstant()
+                .toEpochMilli()
+        )
+
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        datePickerState.selectedDateMillis?.let { millis ->
+                            selectedDate = Instant.ofEpochMilli(millis)
+                                .atZone(ZoneId.systemDefault())
+                                .toLocalDate()
+                        }
+                        showDatePicker = false
+                    }
+                ) {
+                    Text("OK")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDatePicker = false }) {
+                    Text("Cancel")
+                }
+            }
+        ) {
+            DatePicker(state = datePickerState)
+        }
+    }
+}
 @Composable
 fun SimpleCalendarView(
     vaccines: List<VaccineRecord>,
